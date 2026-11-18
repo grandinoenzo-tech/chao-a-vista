@@ -1,0 +1,1898 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chão à Vista: a última casa da rua</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230B1F3A'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='translate%282.4 2.4%29 scale%28.8%29'%3E%3Cpath d='M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z'/%3E%3Cpath d='M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z'/%3E%3Cpath d='M16 17h4'/%3E%3Cpath d='M4 13h4'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230B1F3A'/%3E%3Cg fill='none' stroke='%23FFC93C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='translate%282.4 2.4%29 scale%28.8%29'%3E%3Cpath d='M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z'/%3E%3Cpath d='M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z'/%3E%3Cpath d='M16 17h4'/%3E%3Cpath d='M4 13h4'/%3E%3C/g%3E%3C/svg%3E">
+<meta name="description" content="Chão à Vista: jogo sério de evacuação em caso de inundação para equipes de proteção e defesa civil. Se não vê o chão, não entra. Compatível com WebXR, não testado em headset.">
+<meta name="theme-color" content="#0B1F3A">
+<style>
+:root{--marinho:#0B1F3A;--azul_destaque:#0A3A82;--amarelo:#FFC93C;--laranja:#FF7A1A;--vermelho:#E0344B;--verde:#2E9E4F;--agua:#2B8FA3;--agua_texto:#0E6170;--agua_clara:#D3EEF3;--areia:#E9D8B4;--cartao:#FFFFFF;--branco_suave:#F8FBFF;--tinta:#15202E;--tinta_2:#4A5A6C;--texto_verde_sobre_branco:#23793C;--texto_vermelho_sobre_branco:#B8243A;--texto_laranja_sobre_branco:#B85000;--texto_amarelo_sobre_branco:#8A6400;}
+/* Chão à Vista: a última casa da rua — estilo do protótipo.
+   Layout: palco 3D à esquerda (no celular, em cima) + painel de decisão à direita (no celular, embaixo);
+   faixa marinho no topo com a fase, o nível da escada, o cronômetro e os pontos.
+   Visual de um só tema (escuro, fim de tarde chuvoso): os tokens da paleta vêm de DADOS.json
+   e são inseridos pelo build antes deste arquivo (--marinho, --amarelo, --agua...). */
+:root {
+  color-scheme: dark;
+  --fundo: var(--marinho);
+  --fundo-2: #11294A;          /* marinho um tom acima, para faixas internas */
+  --linha: #26446B;            /* divisórias sobre marinho */
+  --texto: var(--branco_suave);
+  --texto-2: #B9C7D9;          /* texto secundário sobre marinho (contraste 9:1) */
+  --cartao-bg: var(--cartao);
+  --cartao-tx: var(--tinta);
+  --cartao-tx2: var(--tinta_2);
+  --foco: var(--amarelo);
+  --painel-w: 440px;
+  --topo-h: 56px;
+  --raio: 10px;
+  --fonte: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --fonte-num: Bahnschrift, 'DIN Alternate', 'Segoe UI', system-ui, sans-serif;
+  --sombra: 0 6px 24px rgba(0, 0, 0, .35);
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte);
+  font-size: 16px;
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.chip:empty { display: none; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.ic { width: 1.25em; height: 1.25em; flex: none; vertical-align: -0.22em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+#app { position: relative; height: 100%; width: 100%; overflow: hidden; }
+
+/* ---------- palco 3D ---------- */
+#palco {
+  position: absolute; left: 0; top: 0; bottom: 0; right: var(--painel-w);
+  background: #59697d; overflow: hidden;
+}
+#palco a-scene, #palco .a-canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; }
+#chuva-css {
+  position: absolute; inset: 0; pointer-events: none; opacity: .0; transition: opacity 1.2s;
+  background-image:
+    repeating-linear-gradient(103deg, rgba(220, 235, 245, .0) 0 9px, rgba(220, 235, 245, .16) 9px 10px, rgba(220, 235, 245, 0) 10px 23px),
+    repeating-linear-gradient(101deg, rgba(220, 235, 245, .0) 0 17px, rgba(220, 235, 245, .10) 17px 18px, rgba(220, 235, 245, 0) 18px 41px);
+  background-size: 260px 260px, 340px 340px;
+  animation: chuva .55s linear infinite;
+}
+@keyframes chuva { to { background-position: -60px 260px, -70px 340px; } }
+#vinheta { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(5, 14, 28, .45) 100%); }
+#flash { position: absolute; inset: 0; pointer-events: none; background: var(--vermelho); opacity: 0; transition: opacity .25s; }
+#rotulos3d { position: absolute; inset: 0; pointer-events: none; }
+.r3d {
+  position: absolute; transform: translate(-50%, -100%); white-space: nowrap;
+  font: 600 13px/1.2 var(--fonte); color: var(--tinta); background: rgba(255, 255, 255, .92);
+  padding: 3px 7px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.r3d::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-bottom: 0; border-top-color: rgba(255,255,255,.92); }
+.r3d.regua { font: 700 12px/1 var(--fonte-num); padding: 2px 5px; background: var(--marinho); color: var(--branco_suave); transform: translate(6px, -50%); }
+.r3d.regua::after { display: none; }
+.r3d.seco { background: var(--areia); }
+
+/* legenda do modo demonstração (fica na imagem do vídeo) */
+#legenda {
+  position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(var(--painel-w) + 16px); bottom: 18px;
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start; pointer-events: none; z-index: 7;
+}
+/* tamanho pensado para a gravação em 1280x720 ampliada para 1920x1080 (legível no slide projetado) */
+#legenda .quem { font: 700 clamp(13px, 1.25vw, 18px)/1 var(--fonte-num); letter-spacing: .08em; text-transform: uppercase; color: var(--marinho); background: var(--amarelo); padding: 6px 10px; border-radius: 6px; }
+#legenda .oque { font: 700 clamp(17px, 2.7vw, 40px)/1.2 var(--fonte); color: #fff; background: rgba(11, 31, 58, .9); padding: 10px 16px; border-radius: 8px; max-width: 100%; text-wrap: balance; box-shadow: var(--sombra); }
+
+/* ---------- topo ---------- */
+#topo {
+  position: absolute; left: 0; right: var(--painel-w); top: 0; min-height: var(--topo-h);
+  padding: 8px 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-top: max(8px, env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: linear-gradient(180deg, rgba(11, 31, 58, .92), rgba(11, 31, 58, .55) 75%, rgba(11, 31, 58, 0));
+  pointer-events: none;
+}
+#topo > * { pointer-events: auto; }
+.marca { display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: .01em; font-size: 17px; white-space: nowrap; }
+.marca svg.ic { color: var(--amarelo); width: 24px; height: 24px; }
+.marca small { font-weight: 500; color: var(--texto-2); font-size: 13px; }
+#fases { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+.fase-pil { font: 600 12px/1 var(--fonte-num); letter-spacing: .04em; padding: 6px 8px; border-radius: 99px; background: rgba(255, 255, 255, .08); color: var(--texto-2); white-space: nowrap; }
+.fase-pil.atual { background: var(--branco_suave); color: var(--marinho); }
+.fase-pil.feita { color: var(--branco_suave); background: rgba(46, 158, 79, .35); }
+.hud-num { display: flex; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 700 14px/1 var(--fonte-num); padding: 7px 10px; border-radius: 8px; background: rgba(255,255,255,.1); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nivel { color: var(--marinho); }
+.nivel[data-n="Sobreaviso"] { background: var(--amarelo); }
+.nivel[data-n="Alerta"] { background: var(--laranja); }
+.nivel[data-n="Alerta máximo"] { background: var(--vermelho); color: #fff; }
+.nivel[data-n=""] { display: none; }
+
+/* ---------- painel ---------- */
+#painel {
+  position: absolute; right: 0; top: 0; bottom: 0; width: var(--painel-w);
+  background: var(--fundo); border-left: 1px solid var(--linha);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding-block: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: 16px; padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 14px;
+  scrollbar-width: thin; scrollbar-color: var(--linha) transparent;
+}
+#sobre { scrollbar-width: thin; scrollbar-color: var(--linha) transparent; }
+#painel > * { flex-shrink: 0; }
+.eyebrow { font: 700 12px/1 var(--fonte-num); letter-spacing: .12em; text-transform: uppercase; color: var(--amarelo); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { color: var(--texto-2); letter-spacing: .06em; }
+h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.15; }
+h2 { font-size: 22px; font-weight: 800; }
+h3 { font-size: 16px; font-weight: 700; }
+p { margin: 0; }
+.situacao { color: var(--texto); font-size: 16px; }
+.situacao strong { color: #fff; }
+.pergunta { font-size: 19px; font-weight: 800; color: #fff; display: flex; gap: 8px; align-items: flex-start; }
+.pergunta svg.ic { color: var(--amarelo); margin-top: 2px; }
+.nota { font-size: 12.5px; color: var(--texto-2); }
+
+/* cartão branco (herança C+A) */
+.cartao { background: var(--cartao-bg); color: var(--cartao-tx); border-radius: var(--raio); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.cartao .nota { color: var(--cartao-tx2); }
+.leitura { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.leitura div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.leitura dt { font: 700 11px/1.1 var(--fonte-num); letter-spacing: .08em; text-transform: uppercase; color: var(--cartao-tx2); display: flex; gap: 5px; align-items: center; }
+.leitura dd { margin: 0; font-weight: 700; font-size: 15px; }
+.leitura dd.agua { color: var(--agua_texto); }
+.vechao { display: flex; gap: 8px; align-items: center; font-weight: 800; color: var(--agua_texto); font-size: 15px; }
+
+/* escala de 3 cores (legenda) */
+.escala { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.escala > div { border-radius: 8px; padding: 7px 8px; font-size: 12px; line-height: 1.25; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.escala b { font: 800 13px/1 var(--fonte-num); letter-spacing: .04em; display: flex; gap: 4px; align-items: center; }
+.cor-verde { background: var(--verde); color: #fff; }
+.cor-amarelo { background: var(--amarelo); color: var(--marinho); }
+.cor-vermelho { background: var(--vermelho); color: #fff; }
+
+/* opções de decisão */
+.opcoes { display: flex; flex-direction: column; gap: 10px; }
+.op {
+  display: flex; align-items: stretch; gap: 0; width: 100%; min-height: 64px; text-align: left; cursor: pointer;
+  background: var(--cartao-bg); color: var(--cartao-tx); border: 0; border-radius: var(--raio); padding: 0; overflow: hidden;
+  box-shadow: 0 2px 0 rgba(0,0,0,.25); transition: transform .12s, box-shadow .12s;
+}
+.op:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+.op:active, .op.toque { transform: scale(.985); }
+.op .letra { flex: none; width: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: 800 18px/1 var(--fonte-num); background: var(--azul_destaque); color: #fff; }
+.op .letra small { font-size: 10px; letter-spacing: .06em; }
+.op .txt { padding: 11px 13px; font-size: 15.5px; font-weight: 600; line-height: 1.3; display: flex; align-items: center; min-width: 0; }
+.op.agua .letra { width: 96px; font-size: 13px; letter-spacing: .03em; text-align: center; padding: 0 4px; }
+.op.agua .letra svg.ic { width: 22px; height: 22px; stroke-width: 3; }
+.op .letra.cor-verde { background: var(--verde); color: #fff; }
+.op .letra.cor-amarelo { background: var(--amarelo); color: var(--marinho); }
+.op .letra.cor-vermelho { background: var(--vermelho); color: #fff; }
+.op[disabled] { cursor: default; opacity: .55; transform: none; }
+.op.escolhida { opacity: 1; outline: 3px solid var(--amarelo); outline-offset: 2px; }
+.op.dedo::after { content: ""; position: absolute; }
+
+/* feedback */
+.fb { border-radius: var(--raio); overflow: hidden; background: var(--cartao-bg); color: var(--cartao-tx); }
+.fb .cab { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font: 800 16px/1.1 var(--fonte); color: #fff; }
+.fb.ok .cab { background: var(--verde); }
+.fb.nao .cab { background: var(--vermelho); }
+.fb.meio .cab { background: var(--amarelo); color: var(--marinho); }
+.fb .cab .pts { margin-left: auto; font-family: var(--fonte-num); }
+.fb .corpo { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+.fb .corpo .base { font-size: 12.5px; color: var(--cartao-tx2); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 12px 18px;
+  border: 0; border-radius: var(--raio); cursor: pointer; font-weight: 800; font-size: 16px;
+  background: var(--laranja); color: var(--marinho);
+}
+.btn.sec { background: rgba(255,255,255,.12); color: var(--texto); }
+.btn.clara { background: var(--branco_suave); color: var(--marinho); }
+.cartao .btn.clara { background: var(--marinho); color: var(--branco_suave); }
+.btn.grande { min-height: 64px; font-size: 18px; width: 100%; }
+.btn:hover { filter: brightness(1.06); }
+.linha-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.linha-btns .btn { flex: 1 1 160px; }
+
+/* cronômetro e régua do córrego (fase Alerta) */
+.alerta-box { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: stretch; }
+.regua-corrego { width: 54px; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column-reverse; border: 2px solid var(--branco_suave); min-height: 190px; }
+.regua-corrego .fx { flex: 1; position: relative; }
+.regua-corrego .fx span { position: absolute; left: 3px; top: 3px; font: 700 9px/1 var(--fonte-num); letter-spacing: .02em; }
+.regua-corrego .nivel-agua { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(43, 143, 163, .78); border-top: 3px solid #fff; transition: height .4s linear; }
+.relogio { font: 700 46px/1 var(--fonte-num); font-variant-numeric: tabular-nums; color: #fff; }
+.relogio small { font-size: 14px; color: var(--texto-2); font-weight: 600; display: block; margin-top: 4px; letter-spacing: .02em; }
+.feed { display: flex; flex-direction: column; gap: 6px; }
+.msg { background: var(--fundo-2); border-left: 4px solid var(--texto-2); border-radius: 6px; padding: 8px 10px; font-size: 14px; }
+.msg b { font-family: var(--fonte-num); }
+.msg.nova { animation: entra .4s ease-out; }
+.msg[data-n="Sobreaviso"] { border-left-color: var(--amarelo); }
+.msg[data-n="Alerta"] { border-left-color: var(--laranja); }
+.msg[data-n="Alerta máximo"] { border-left-color: var(--vermelho); }
+@keyframes entra { from { transform: translateY(-6px); opacity: 0; } }
+
+/* ---------- sobreposições: abertura, pré-treino, game over, debriefing ---------- */
+#sobre {
+  position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
+  background: linear-gradient(90deg, rgba(11, 31, 58, .96) 0%, rgba(11, 31, 58, .90) 42%, rgba(11, 31, 58, .55) 100%);
+  padding-block: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+#sobre.escuro { background: rgba(8, 20, 38, .94); }
+#sobre.vermelho { background: linear-gradient(180deg, rgba(120, 16, 34, .94), rgba(11, 31, 58, .96) 55%); }
+.folha { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.folha.larga { max-width: 1120px; }
+.abertura { min-height: 100%; display: flex; align-items: center; }
+.titulo-jogo { font-size: clamp(38px, 6.4vw, 76px); font-weight: 900; letter-spacing: -.02em; line-height: .98; display: flex; align-items: center; gap: 14px; }
+.titulo-jogo svg.ic { color: var(--amarelo); width: .82em; height: .82em; stroke-width: 2.2; }
+.subtitulo { font-size: clamp(18px, 2.4vw, 26px); font-weight: 600; color: var(--texto-2); }
+.slogan { display: inline-flex; align-self: flex-start; align-items: center; gap: 10px; font: 800 clamp(18px, 2.2vw, 24px)/1.1 var(--fonte); color: var(--marinho); background: var(--amarelo); padding: 10px 14px; border-radius: 8px; }
+.apoio { font-size: 17px; max-width: 60ch; }
+.rotulos { display: flex; flex-wrap: wrap; gap: 6px; }
+.rotulos span { font-size: 12.5px; padding: 5px 9px; border-radius: 8px; border: 1px solid var(--linha); color: var(--texto-2); }
+.rotulos span.xr { border-color: var(--agua); color: var(--agua_clara); }
+.modos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modo { text-align: left; background: var(--cartao-bg); color: var(--cartao-tx); border: 0; border-radius: var(--raio); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-height: 96px; }
+.modo b { font-size: 17px; display: flex; gap: 8px; align-items: center; }
+.modo span { font-size: 13.5px; color: var(--cartao-tx2); }
+.modo.prim { background: var(--laranja); color: var(--marinho); }
+.modo.prim span { color: var(--marinho); }
+.links-ab { display: flex; flex-wrap: wrap; gap: 10px; }
+.cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.cards3 .cartao h3 { display: flex; gap: 8px; align-items: center; }
+.regua-mini { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.regua-mini div { display: grid; grid-template-columns: 74px 1fr; gap: 8px; align-items: baseline; }
+.regua-mini b { font: 800 18px/1 var(--fonte-num); color: var(--agua_texto); }
+/* rótulo do nível da escada no cartão "A equipe também se protege": quebra a linha em vez de cortar ("Alerta máximo") */
+.regua-mini .nv { white-space: normal; justify-self: start; max-width: 100%; line-height: 1.1; letter-spacing: 0; overflow-wrap: anywhere; }
+
+.go-cab { display: flex; align-items: center; gap: 12px; }
+.go-cab .selo { font: 900 clamp(30px, 5vw, 58px)/1 var(--fonte-num); letter-spacing: .04em; color: #fff; }
+.go-cab svg.ic { width: 52px; height: 52px; color: #fff; stroke-width: 2.6; }
+.go-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+.go-grid .cartao p { font-size: 15.5px; }
+.go-grid .cartao p.grande-num { font: 800 40px/1 var(--fonte-num); color: var(--texto_vermelho_sobre_branco); }
+
+.metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.met { background: var(--cartao-bg); color: var(--cartao-tx); border-radius: var(--raio); padding: 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.met .v { font: 800 30px/1 var(--fonte-num); font-variant-numeric: tabular-nums; }
+.met .v small { font-size: 15px; }
+.met .r { font: 700 11px/1.2 var(--fonte-num); letter-spacing: .08em; text-transform: uppercase; color: var(--cartao-tx2); }
+.met .d { font-size: 12.5px; color: var(--cartao-tx2); }
+.met.alerta .v { color: var(--texto_vermelho_sobre_branco); }
+.met.bom .v { color: var(--texto_verde_sobre_branco); }
+.deb-cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; align-items: start; }
+.lista-dec { display: flex; flex-direction: column; gap: 0; }
+.lista-dec .it { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid #E3E8EF; }
+.lista-dec .it:first-child { border-top: 0; }
+.lista-dec .it .st { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+.lista-dec .it .st.ok { background: var(--verde); }
+.lista-dec .it .st.nao { background: var(--vermelho); }
+.lista-dec .it .st svg.ic { width: 15px; height: 15px; stroke-width: 3; }
+.lista-dec .it b { display: block; font-size: 14.5px; }
+.lista-dec .it span { font-size: 13px; color: var(--cartao-tx2); }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge { display: inline-flex; gap: 6px; align-items: center; padding: 7px 10px; border-radius: 99px; font-weight: 700; font-size: 13.5px; background: #EEF2F6; color: var(--cartao-tx2); }
+.badge.ganho { background: var(--amarelo); color: var(--marinho); }
+.badge:not(.ganho):not(.indisp) { text-decoration: line-through; text-decoration-thickness: 1px; }
+.badge.indisp { background: transparent; border: 1px dashed #9AA8B8; }
+.badge small { font-weight: 600; font-size: 11.5px; margin-left: 2px; }
+.badge small::before { content: "· "; }
+.lista-dec .it b .tipo-erro { display: inline-block; margin-left: 6px; font: 800 10.5px/1 var(--fonte-num); letter-spacing: .06em; text-transform: uppercase; font-style: normal; padding: 3px 6px; border-radius: 4px; vertical-align: 1px; }
+.tipo-erro.critico { background: var(--vermelho); color: #fff; }
+.tipo-erro.sst { background: var(--laranja); color: var(--marinho); }
+.deb-resumo { color: var(--texto-2); margin-top: -8px; }
+.fb.t35 .cartao-t35 { font-weight: 800; font-size: 16.5px; line-height: 1.3; }
+.dxv { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.dxv .faixa { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: center; }
+.dxv .faixa b { font: 800 15px/1 var(--fonte-num); }
+table.escada { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.escada th, table.escada td { text-align: left; padding: 6px 6px; border-top: 1px solid #E3E8EF; vertical-align: top; }
+table.escada th { font: 700 11px/1.2 var(--fonte-num); letter-spacing: .06em; text-transform: uppercase; color: var(--cartao-tx2); border-top: 0; }
+.nv { display: inline-block; font: 800 12px/1 var(--fonte-num); padding: 4px 6px; border-radius: 5px; white-space: nowrap; }
+.nv.Sobreaviso { background: var(--amarelo); color: var(--marinho); }
+.nv.Alerta { background: var(--laranja); color: var(--marinho); }
+.nv.Alerta-maximo { background: var(--vermelho); color: #fff; }
+textarea#csv { width: 100%; min-height: 110px; font: 12px/1.35 Consolas, 'Cascadia Mono', monospace; background: #F4F7FA; color: var(--tinta); border: 1px solid #CBD5E1; border-radius: 8px; padding: 8px; resize: vertical; }
+.rodape-rot { font-size: 12px; color: var(--texto-2); }
+.rodape-rot.creditos { color: var(--branco_suave); font-size: 12.5px; }
+.rodape-rot + .rodape-rot { margin-top: -10px; }
+#btn-vr[hidden] { display: none; }
+.ok-msg { font-size: 13px; color: var(--texto_verde_sobre_branco); font-weight: 700; }
+
+#carregando { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--branco_suave); background: var(--marinho); }
+#carregando[hidden] { display: none; }
+
+/* modo foto (?ui=0): só a cena, para os renders do vídeo EAD e dos slides */
+.sem-ui #topo, .sem-ui #painel, .sem-ui #legenda, .sem-ui #sobre { display: none !important; }
+.sem-ui #palco { right: 0 !important; height: 100% !important; max-height: none !important; }
+.sem-ui .r3d { font-size: 22px; padding: 5px 11px; }
+.sem-ui .r3d.regua { font-size: 20px; padding: 4px 8px; }
+
+/* ---------- celular / janelas estreitas ---------- */
+@media (max-width: 860px), (max-aspect-ratio: 1/1) {
+  :root { --painel-w: 0px; }
+  #palco { right: 0; bottom: auto; height: 40%; min-height: 230px; max-height: 420px; }
+  #topo { right: 0; padding-block: max(6px, env(safe-area-inset-top, 0px)) 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); gap: 6px; }
+  #fases { display: none; }
+  .marca { font-size: 15px; }
+  .marca small { display: none; }
+  .hud-num { margin-left: auto; gap: 5px; }
+  .chip { font-size: 13px; padding: 6px 7px; }
+  #painel {
+    left: 0; right: 0; width: auto; top: clamp(230px, 40%, 420px); bottom: 0; border-left: 0; border-top: 1px solid var(--linha);
+    padding-block: 14px max(18px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  #legenda { bottom: calc(100% - clamp(230px, 40%, 420px) + 8px); left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); }
+  #sobre:not([hidden]) ~ #legenda { bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
+  #legenda .quem { font-size: 11px; padding: 4px 8px; }
+  #legenda .oque { font-size: 15px; padding: 7px 10px; }
+  .modos, .cards3, .go-grid, .deb-cols { grid-template-columns: 1fr; }
+  .metricas { grid-template-columns: 1fr 1fr; }
+  #sobre { background: rgba(11, 31, 58, .95); }
+  .relogio { font-size: 38px; }
+  .op .txt { font-size: 15px; }
+  .op.agua .letra { width: 84px; font-size: 12px; }
+}
+@media (max-width: 380px) {
+  .escala { grid-template-columns: 1fr; }
+  .leitura { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #chuva-css { animation: none; }
+  .msg.nova { animation: none; }
+  .op, .op:hover { transition: none; transform: none; }
+}
+</style>
+<script src="vendor/aframe.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="palco" aria-hidden="true">
+    <a-scene embedded diretor
+      renderer="antialias: true; colorManagement: true; sortTransparentObjects: true"
+      xr-mode-ui="enabled: false" loading-screen="enabled: false"
+      device-orientation-permission-ui="enabled: false" keyboard-shortcuts="enterVR: false">
+      <a-entity id="mundo"></a-entity>
+      <a-entity id="rig">
+        <a-entity id="cam" camera="fov: 52; near: 0.1; far: 400; userHeight: 0" look-controls="enabled: false" wasd-controls="enabled: false"></a-entity>
+      </a-entity>
+    </a-scene>
+    <div id="chuva-css"></div>
+    <div id="vinheta"></div>
+    <div id="flash"></div>
+    <div id="rotulos3d"></div>
+    <div id="carregando">Carregando a Vila Baru…</div>
+  </div>
+  <header id="topo">
+    <div class="marca"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg><span>Chão à Vista</span><small>a última casa da rua</small></div>
+    <div id="fases"></div>
+    <div class="hud-num">
+      <span class="chip nivel" id="hud-nivel" data-n=""></span>
+      <span class="chip" id="hud-relogio" hidden></span>
+      <span class="chip" id="hud-pontos"></span>
+      <button class="chip" id="hud-vr" hidden title="Compatível com WebXR, não testado em headset">VR</button>
+    </div>
+  </header>
+  <main id="painel" aria-live="polite"></main>
+  <div id="sobre" hidden></div>
+  <div id="legenda" hidden></div>
+</div>
+<noscript><p style="padding:24px;color:#F8FBFF;background:#0B1F3A">Este protótipo precisa de JavaScript ativado no navegador.</p></noscript>
+<script>window.DADOS_JOGO={"versao_dados":"1.2.0","paleta":{"marinho":"#0B1F3A","azul_destaque":"#0A3A82","amarelo":"#FFC93C","laranja":"#FF7A1A","vermelho":"#E0344B","verde":"#2E9E4F","agua":"#2B8FA3","agua_texto":"#0E6170","agua_clara":"#D3EEF3","areia":"#E9D8B4","cartao":"#FFFFFF","branco_suave":"#F8FBFF","tinta":"#15202E","tinta_2":"#4A5A6C","texto_verde_sobre_branco":"#23793C","texto_vermelho_sobre_branco":"#B8243A","texto_laranja_sobre_branco":"#B85000","texto_amarelo_sobre_branco":"#8A6400"},"marca":{"nome":"Chão à Vista","slogan":"Se não vê o chão, não entra.","linha_de_apoio":"A população sai. A equipe não entra na água.","frase_de_venda":"Na RV, a água entra; no campo, ninguém entra na água.","pergunta_bordao":"Vê o chão?","nome_do_jogo":"Chão à Vista: a última casa da rua"},"rotulos":{"personagem":"Personagem fictícia","bairro":"Bairro fictício, inspirado em áreas de risco do DF","chuva":"Chuva hipotética, inspirada no registro de 84,2 mm em 1 h (INMET, 25/01/2026), dia em que o Plano Piloto registrou alagamentos","xr":"Compatível com WebXR, não testado em headset","estimativa":"Estimativa","hipotese":"Hipótese","proposto":"Proposto (não implementado)","escada":"Exemplo didático baseado nos PLANCON do RJ e de Cachoeira do Sul/RS; não existe escala nacional única","analise_tarefa":"Proposta, a validar com a Defesa Civil do DF"},"identificacao":{"trabalho":"Trabalho 5 (Atividade 5) – Proposta de treinamento: Evacuação em caso de inundação","disciplina":"Segurança e Saúde no Trabalho (02/2026)","grupo":["Maria Eduarda Silveira Cintra","Enzo Grandino Lourenço","Beatriz Gomes de Araújo","Maria Alice Teixeira Portilho"],"instituicao_completa":"Universidade de Brasília (UnB), Faculdade de Tecnologia, Departamento de Engenharia de Produção","instituicao":"Universidade de Brasília (UnB)","faculdade":"Faculdade de Tecnologia","departamento":"Departamento de Engenharia de Produção","professor_tratamento":"Prof. Paulo Celso dos Reis Gomes","cidade":"Brasília","ano":2026},"personagens":[{"id":"celeste","nome":"Dona Celeste","rotulo":"Personagem fictícia","idade":74,"descricao":"Mora sozinha com o vira-lata Pipoca na última casa da rua do córrego, numa casa térrea. Tem celular antigo (anterior a 2020), então não recebe o cell broadcast: a equipe precisa bater à porta. Guarda os documentos numa sacola. No muro da casa há uma régua pintada com 15, 30 e 60 cm.","animal":"Pipoca (vira-lata)","papel_no_jogo":"Alvo da evacuação; abre a carta 'morador recusa' (não sai sem o Pipoca).","papel_no_video":"Caso de abertura ilustrado (com rótulo).","papel_no_pitch":"Cartão de abertura e de fechamento da história.","uso":"mesma personagem no jogo, no vídeo, no pitch, no kit de mesa e no questionário"},{"id":"valdir","nome":"Seu Valdir","rotulo":"Personagem fictícia","idade":81,"descricao":"Vizinho com mobilidade reduzida, usa bengala.","papel_no_jogo":"Fase de triagem (P2): exige transporte em dupla até o ponto seco.","uso":"secundário; jogo (P2), kit de mesa e prática de transporte em dupla"}],"cenario":{"bairro":"Vila Baru","corrego":"Córrego Baru","rotulo":"Bairro e córrego fictícios, inspirados em áreas de risco do DF","cobrade_simulado":{"codigo":"1.2.2.0.0","tipo":"Enxurrada","definicao":"escoamento superficial de alta velocidade e energia, com elevação súbita da vazão (Portaria MDR 260/2022, anexo)","efeito_no_cenario":"o córrego transborda rápido para a rua baixa e a água corre pela via"},"chuva":"Chuva hipotética, inspirada no registro de 84,2 mm em 1 h (INMET, estação Sudoeste, 25/01/2026), dia em que o Plano Piloto registrou alagamentos","linha_do_tempo_hipotetica":[{"t":"T−3 h","evento":"aviso laranja do INMET (perigo) para tempestade no DF","nivel":"Sobreaviso"},{"t":"T+0","evento":"chuva forte começa na bacia do Córrego Baru","nivel":"Sobreaviso"},{"t":"T+15 min","evento":"régua do córrego chega à faixa laranja; a Defesa Civil envia cell broadcast severo","nivel":"Alerta"},{"t":"T+35 min","evento":"régua na faixa vermelha; água corre pela Rua do Córrego e pela travessia baixa; cell broadcast extremo","nivel":"Alerta máximo"},{"t":"T+40 min","evento":"meta: equipe retirada e contada no ponto de reunião","nivel":"Alerta máximo"}],"rotulo_linha_do_tempo":"Linha do tempo e limiares da régua são hipotéticos, para o jogo e os simulados.","elementos_do_mapa":[{"id":"rua_corrego","nome":"Rua do Córrego","descricao":"rua baixa, junto ao córrego; alaga primeiro e a água corre"},{"id":"travessia_baixa","nome":"Travessia baixa (bueiro sob a rua)","descricao":"rota mais curta; alaga com água em movimento"},{"id":"rota_alta","nome":"Rua de Cima","descricao":"rota mais longa e seca, pelo alto"},{"id":"casa_celeste","nome":"Casa da Dona Celeste","descricao":"última casa da Rua do Córrego; régua no muro"},{"id":"casa_valdir","nome":"Casa do Seu Valdir","descricao":"meio da rua; exige transporte em dupla"},{"id":"ponto_reuniao_equipe","nome":"Ponto de reunião da equipe","descricao":"ponto seguro predefinido para a retirada e a contagem de efetivo"},{"id":"ponto_seco","nome":"Ponto Seco (abrigo na escola do bairro)","descricao":"destino da população; contagem de evacuados"}]},"regra_central":{"frase":"Se não vê o chão, não entra.","enunciado_operacional":"Agente de evacuação não entra em água em movimento nem dirige por via alagada. Rota alagada: espera ou muda de rota e avisa a coordenação; se alguém estiver em perigo, aciona-se o 193 (CBMDF) e ninguém entra atrás.","nws_fema":[{"altura_aprox_cm":15,"original":"6 pol.","efeito":"água em movimento derruba um adulto"},{"altura_aprox_cm":30,"original":"12 pol.","efeito":"arrasta a maioria dos carros"},{"altura_aprox_cm":60,"original":"2 pés","efeito":"arrasta SUVs e caminhonetes"}],"nws_ressalva":"Valores aproximados, convertidos de polegadas e pés (NWS/NOAA; FEMA Ready.gov). Dizer sempre 'cerca de'.","dxv_aidr":{"uso":"planejar rotas e pontos seguros no PLANCON (classes H1 a H6); m²/s só no debriefing e no texto","adulto_risco_baixo_abaixo_m2s":0.6,"limite_socorrista_treinado_m2s":0.8,"risco_extremo_acima_m2s":1.2,"termo_da_fonte":"risco extremo","decisao_do_curso":"Acima de 1,2 m²/s a fonte diz 'risco extremo'; a palavra 'proibido' é decisão do curso e deve ser dita assim.","ressalva":"Limiares de laboratório com adultos capazes; em água turva ou com detritos o limite seguro é menor."},"escala_3_cores":[{"cor":"verde","hex":"#2E9E4F","palavra":"SEGUE","icone":"check","criterio":"sem água em movimento e chão visível: segue com cautela pela rota seca"},{"cor":"amarelo","hex":"#FFC93C","palavra":"ESPERA","icone":"pause","criterio":"água subindo, chuva forte ou chão pouco visível: espera em ponto seguro e refaz a análise de risco"},{"cor":"vermelho","hex":"#E0344B","palavra":"NÃO ENTRA","icone":"x","criterio":"água em movimento ou chão invisível: não entra, muda de rota e avisa a coordenação"}],"base_de_apoio":["NR-1, 1.4.3 a 1.4.3.3 (direito de interromper a atividade diante de risco grave e iminente; obrigatório para celetistas, boa prática para os demais)","ISO 45001:2018, 7.3 f) (capacidade de se retirar de perigo iminente e sério, com proteção contra consequências indevidas; boa prática)","NIOSH (2025), publicação 2025-106: afogamento é risco independentemente de saber nadar; não atravessar via alagada sem saber a profundidade; 'prohibit driving into flood waters'"]},"escada":[{"nivel":"Sobreaviso","cor":"amarelo","hex":"#FFC93C","acao_populacao":"Preparar: avisar os moradores da área de risco, revisar a lista de vulneráveis e animais, conferir rotas e abrigo.","acao_sst_equipe":"Conferir EPI, escala e descanso; testar rádios.","gatilho_exemplo":"aviso laranja ou vermelho do INMET para o DF (no jogo: T−3 h)","correspondencia":"Observação/Atenção nos PLANCON do RJ e de Cachoeira do Sul; o CENAD recomenda 'sobreaviso das equipes' no nível Moderado do Cemaden"},{"nivel":"Alerta","cor":"laranja","hex":"#FF7A1A","acao_populacao":"Retirar os vulneráveis (idosos, pessoas com deficiência, acamados, crianças) e os animais pela rota seca.","acao_sst_equipe":"Briefing de segurança e APR; duplas formadas; função de segurança designada; controle de efetivo aberto.","gatilho_exemplo":"chuva forte observada e régua do córrego na faixa laranja (limiar hipotético do cenário)","correspondencia":"Alerta nos PLANCON do RJ e de Cachoeira do Sul; o CENAD recomenda verificação in loco e preparação de abrigos e rotas no nível Alto"},{"nivel":"Alerta máximo","cor":"vermelho","hex":"#E0344B","acao_populacao":"Concluir a evacuação; quem recusou fica registrado e escalonado à coordenação.","acao_sst_equipe":"Retirada da equipe para ponto seguro predefinido, com contagem de efetivo; ninguém volta à zona quente.","gatilho_exemplo":"régua na faixa vermelha ou água em movimento na rua (limiar hipotético do cenário)","correspondencia":"Alerta Máximo nos PLANCON do RJ e de Cachoeira do Sul; o CENAD recomenda sirenes, possível desocupação e equipes posicionadas no nível Muito Alto"}],"fontes_de_alerta_df":[{"fonte":"INMET","niveis":["amarelo (perigo potencial)","laranja (perigo)","vermelho (grande perigo)"],"nota":"o INMET emite avisos; a Defesa Civil emite alertas"},{"fonte":"Defesa Civil Alerta (cell broadcast)","niveis":["severo","extremo"],"nota":"país coberto desde 01/10/2025; só chega a celular compatível conectado em 4G ou 5G (Anatel); aparelhos anteriores a 2020 podem não receber (MIDR); o severo pode exigir ativação"},{"fonte":"Cemaden","niveis":["moderado","alto","muito alto"],"nota":"escala nacional; cobertura do DF não confirmada"},{"fonte":"Níveis operacionais","niveis":["Observação","Atenção","Alerta","Alerta Máximo"],"nota":"exemplo baseado nos PLANCON do RJ e de Cachoeira do Sul/RS; não existe escala nacional única"}],"jogo":{"nome":"Chão à Vista: a última casa da rua","tecnologia":"A-Frame 1.8.0 (WebXR), vendor local por caminho relativo; só primitivas; texto em HTML sobreposto","rotulo_xr":"Compatível com WebXR, não testado em headset","duracao_alvo_min":{"min":2,"max":3},"fases":[{"id":0,"nome":"Briefing e APR","prioridade":"P2","decisao_sst":"conferir o EPI em dupla, testar os rádios e confirmar a escala com descanso antes de sair (sair sozinho conta como erro de SST)"},{"id":1,"nome":"Alerta","prioridade":"P1","decisao_sst":"decidir quando evacuar (com cronômetro) e o que segue junto com a ordem: briefing e APR rápida, duplas formadas, função de segurança designada e controle de efetivo aberto"},{"id":2,"nome":"Triagem","prioridade":"P2","decisao_sst":"transporte em dupla do Seu Valdir; carta 'morador recusa' da Dona Celeste; depois de T+35 (Alerta máximo), continuar de porta em porta conta como erro de SST"},{"id":3,"nome":"Rota","prioridade":"P1","decisao_sst":"sigo, espero ou mudo de rota? SEGUE na travessia baixa com água correndo ou na Rua de Cima com correnteza na sarjeta e chão pouco visível é erro crítico: game over que explica o erro, e a fase recomeça"},{"id":4,"nome":"Ponto seco","prioridade":"P2","decisao_sst":"contagem de evacuados e retirada da equipe com contagem de efetivo; mandar a dupla voltar à zona quente no Alerta máximo é erro crítico"},{"id":5,"nome":"Debriefing","prioridade":"P1","decisao_sst":"revisão das decisões de SST; D×V em m²/s só aqui; CSV exportável; com erro, o título é 'Missão concluída com N decisões de SST erradas'"}],"metricas":[{"id":"tempo_ate_decisao_s","descricao":"segundos do primeiro aviso até a decisão de evacuar","fonte":"Fujimi e Fujimura (2020)"},{"id":"erros_criticos","descricao":"erros críticos (cada um dá game over explicativo e a fase recomeça): SEGUE na travessia baixa com água correndo; SEGUE na Rua de Cima com correnteza na sarjeta e chão pouco visível; mandar a dupla voltar à zona quente no Alerta máximo"},{"id":"pct_evacuados","descricao":"% de moradores (e animais) que chegaram ao ponto seco"},{"id":"decisoes_sst_corretas","descricao":"decisões de SST corretas"},{"id":"decisoes_sst_total","descricao":"decisões de SST apresentadas"},{"id":"tempo_total_s","descricao":"duração da partida"},{"id":"rota_escolhida","descricao":"rota_alta, travessia_baixa ou espera"},{"id":"game_over_motivo","descricao":"texto do erro explicado, se houve"},{"id":"badges","descricao":"lista de badges ganhos"}],"csv_colunas":["sessao_id","data_hora","modo","fase","decisao","correta","tempo_ate_decisao_s","erros_criticos","pct_evacuados","decisoes_sst_corretas","decisoes_sst_total","tempo_total_s","rota_escolhida","game_over_motivo","badges"],"csv_privacidade":"sessao_id aleatório, sem nome nem matrícula; finalidade pedagógica; nenhum uso disciplinar (LGPD).","pontuacao_proposta":{"por_morador_evacuado":10,"por_animal_evacuado":5,"por_decisao_sst_correta":20,"erro_critico":"game over explicativo, que cita a regra 'Se não vê o chão, não entra', e a fase recomeça","nota":"valores de design do jogo, não são fatos"},"badges":[{"id":"da_meia_volta","nome":"Dá meia-volta","criterio":"escolheu NÃO ENTRA na travessia baixa (muda de rota e avisa a coordenação)"},{"id":"ninguem_fica","nome":"Ninguém fica para trás","criterio":"as duas decisões de triagem corretas (transporte do Seu Valdir e carta 'morador recusa') e 100% dos moradores e o Pipoca no ponto seco"},{"id":"pe_no_seco","nome":"Pé no seco","criterio":"zero erro crítico na partida"},{"id":"contagem_fechada","nome":"Contagem fechada","criterio":"equipe contada no ponto de reunião no Alerta máximo"}],"ranking":"por equipe: soma das pontuações individuais, mais bônus 'Contagem fechada' (competição e colaboração)","modo_demo":"?demo=1 joga sozinho: Alerta → Rota com erro proposital (entra na água) → game over explicativo → refaz com 'mudo de rota' → debriefing","debriefing_dxv":"Só no debriefing: abaixo de 0,6 m²/s, risco baixo para adulto; 0,8 m²/s, limite de trabalho recomendado para adultos treinados; acima de 1,2 m²/s, 'risco extremo' (AIDR).","especificacao_d3":{"erros_criticos_regras":[{"id":"travessia_segue","fase":3,"descricao":"SEGUE na travessia baixa com água correndo"},{"id":"rua_de_cima_segue","fase":3,"descricao":"SEGUE na Rua de Cima com correnteza na sarjeta e chão pouco visível"},{"id":"volta_zona_quente","fase":4,"descricao":"mandar a dupla voltar à zona quente no Alerta máximo"}],"consequencia_erro_critico":"game over explicativo, que cita a regra 'Se não vê o chão, não entra', e a fase recomeça","erros_sst_regras":[{"id":"sozinho","descricao":"sair sozinho / sem dupla"},{"id":"alerta_maximo_t35","descricao":"continuar batendo de porta em porta ou cruzar a travessia depois de T+35 (Alerta máximo)","cartao":"Alerta máximo: na operação real a equipe já estaria se retirando. Continue para treinar, mas isto conta como erro de SST."}],"consequencia_erro_sst":"conta no debriefing e no CSV, sem game over","alerta_maximo_min":35,"titulo_debriefing_com_erro":"Missão concluída com N decisões de SST erradas","medalhas":{"pe_no_seco":"só com zero erro crítico","da_meia_volta":"só se o jogador escolheu NÃO ENTRA na travessia","ninguem_fica":"só com as duas decisões de triagem corretas"},"demo":"?demo=1 continua seguindo o caminho certo, com o erro proposital da travessia"}}};window.PARAMS_JOGO={"_rotulo":"Valores de design do jogo (hipotéticos, para o cenário fictício). Não são fatos e não são números do curso; os números do curso e as regras vêm de DADOS.json, lido no build.","_dono":"agente do protótipo (trabalho\\prototipo)","_regras_d3":"zona_quente = trecho na Rua do Córrego (depois de T+35, cartão do Alerta máximo, erro de SST); segue_critico = SEGUE é erro crítico (game over explicativo e a fase recomeça). Fonte: DADOS.json jogo.especificacao_d3.","relogio_s_por_min":0.55,"relogio_s_por_min_demo":0.32,"decisao_no_prazo_ate_min":20,"decisao_forcada_min":30,"aguardar_avanca_min":5,"tempo_cenario":{"_nota":"Minutos do cenário depois da decisão de evacuar (hipotéticos). Calibrados para que quem decide até T+20 termine a Rua do Córrego antes do Alerta máximo (T+35); quem decide tarde chega lá depois de T+35 e vê o cartão do Alerta máximo (erro de SST, D3).","triagem_apos_decisao_min":5,"triagem_entre_casas_min":2,"rota_apos_decisao_min":{"rapida":8,"completa":10},"trecho_passo_min":3,"ponto_seco_apos_rota_min":2},"nivel_corrego_y":[{"min":0,"y":-0.9},{"min":15,"y":-0.28},{"min":35,"y":0.02},{"min":40,"y":0.1}],"faixas_regua_corrego":[{"nome":"verde","de":-1.2,"ate":-0.6,"nivel":""},{"nome":"amarela","de":-0.6,"ate":-0.3,"nivel":"Sobreaviso"},{"nome":"laranja","de":-0.3,"ate":0.0,"nivel":"Alerta"},{"nome":"vermelha","de":0.0,"ate":0.6,"nivel":"Alerta máximo"}],"populacao":[{"id":"casal","casa":1,"nome":"Casal da casa 1","pessoas":2,"animais":0},{"id":"familia","casa":2,"nome":"Família da casa 2","pessoas":3,"animais":0,"perde_se_decisao_tardia":true},{"id":"valdir","casa":3,"nome":"Seu Valdir (casa 3)","pessoas":1,"animais":0},{"id":"celeste","casa":5,"nome":"Dona Celeste (casa 5)","pessoas":1,"animais":0},{"id":"pipoca","casa":5,"nome":"Pipoca, o vira-lata","pessoas":0,"animais":1}],"casa_sem_resposta":4,"dupla_zona_quente":{"_nota":"posição da dupla na cena do erro crítico do Ponto Seco (volta à zona quente)","pos":[29.4,0.15,-9.0],"rot":-70},"trechos":[{"id":"calcada","nome":"Calçada da Rua do Córrego","vista":"trecho1","comitiva":[23.2,0.15,-6.9],"rot":-90,"cor":"verde","zona_quente":true,"segue_critico":false,"profundidade":"poças paradas de 1 a 2 cm","correnteza":"nenhuma","chao":"visível","chuva":"moderada","txt_segue":"Sigo pela calçada, com cautela","txt_espera":"Espero em ponto seguro e refaço a análise","txt_nao":"Não entro: mudo de rota e aviso a coordenação"},{"id":"travessia","nome":"Travessia baixa (bueiro sob a rua)","vista":"trecho2","comitiva":[25.6,0.15,-7.4],"rot":-90,"cor":"vermelho","zona_quente":true,"segue_critico":true,"profundidade_cm":20,"profundidade":"cerca de 20 cm na régua","correnteza":"forte: galhos passam rápido","chao":"invisível","chuva":"forte","txt_segue":"Sigo pela travessia: é o caminho mais curto","txt_espera":"Espero na beira até a água baixar","txt_nao":"Não entro: mudo de rota pela Rua de Cima e aviso a coordenação"},{"id":"rua_de_cima","nome":"Rua de Cima, descida para a escola","vista":"trecho3","comitiva":[31.5,2.55,7.3],"rot":-90,"cor":"amarelo","zona_quente":false,"segue_critico":true,"profundidade":"água subindo na sarjeta","correnteza":"começando na sarjeta","chao":"pouco visível","chuva":"pancada forte","txt_segue":"Sigo descendo, mesmo sem ver bem o chão","txt_espera":"Espero sob a marquise (ponto seguro) e refaço a análise","txt_nao":"Não entro: volto e procuro outra rota"}],"demo":{"abertura_ms":3200,"leitura_ms":2500,"feedback_ms":2300,"gameover_ms":6200,"debriefing_ms":8000,"decide_evacuar_no_min":16,"roteiro_rapido":{"alerta_sst":"a","calcada":["segue","segue"],"travessia":["segue","nao"],"rua_de_cima":["espera"]},"roteiro_completo":{"briefing":"a","alerta_sst":"a","valdir":"a","recusa":"a","calcada":["segue","segue"],"travessia":["segue","nao"],"rua_de_cima":["espera"],"ponto_seco":"a"}}};window.ICONES={"footprints":"<path d=\"M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z\"/><path d=\"M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z\"/><path d=\"M16 17h4\"/><path d=\"M4 13h4\"/>","eye":"<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>","check":"<path d=\"M20 6 9 17l-5-5\"/>","pause":"<rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/>","x":"<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>","triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>","radio":"<path d=\"M16.247 7.761a6 6 0 0 1 0 8.478\"/><path d=\"M19.075 4.933a10 10 0 0 1 0 14.134\"/><path d=\"M4.925 19.067a10 10 0 0 1 0-14.134\"/><path d=\"M7.753 16.239a6 6 0 0 1 0-8.478\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/>","users":"<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/>","siren":"<path d=\"M7 18v-6a5 5 0 1 1 10 0v6\"/><path d=\"M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z\"/><path d=\"M21 12h1\"/><path d=\"M18.5 4.5 18 5\"/><path d=\"M2 12h1\"/><path d=\"M12 2v1\"/><path d=\"m4.929 4.929.707.707\"/><path d=\"M12 12v6\"/>","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 6v6l4 2\"/>","download":"<path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/>","copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/>","map-pin":"<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>","house":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","dog":"<path d=\"M11.25 16.25h1.5L12 17z\"/><path d=\"M16 14v.5\"/><path d=\"M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309\"/><path d=\"M8 14v.5\"/><path d=\"M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5.277c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5\"/>","shield-check":"<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/>","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/>","info":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>","cloud-rain":"<path d=\"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242\"/><path d=\"M16 14v6\"/><path d=\"M8 14v6\"/><path d=\"M12 16v6\"/>","arrow-right":"<path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/>","flag":"<path d=\"M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528\"/>","list-checks":"<path d=\"M13 5h8\"/><path d=\"M13 12h8\"/><path d=\"M13 19h8\"/><path d=\"m3 17 2 2 4-4\"/><path d=\"m3 7 2 2 4-4\"/>","glasses":"<circle cx=\"6\" cy=\"15\" r=\"4\"/><circle cx=\"18\" cy=\"15\" r=\"4\"/><path d=\"M14 15a2 2 0 0 0-2-2 2 2 0 0 0-2 2\"/><path d=\"M2.5 13 5 7c.7-1.3 1.4-2 3-2\"/><path d=\"M21.5 13 19 7c-.7-1.3-1.5-2-3-2\"/>","timer":"<line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\"/><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\"/><circle cx=\"12\" cy=\"14\" r=\"8\"/>","accessibility":"<circle cx=\"16\" cy=\"4\" r=\"1\"/><path d=\"m18 19 1-7-6 1\"/><path d=\"m5 8 3-3 5.5 3-2.36 3.5\"/><path d=\"M4.24 14.5a5 5 0 0 0 6.88 6\"/><path d=\"M13.76 17.5a5 5 0 0 0-6.88-6\"/>","life-buoy":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m4.93 4.93 4.24 4.24\"/><path d=\"m14.83 9.17 4.24-4.24\"/><path d=\"m14.83 14.83 4.24 4.24\"/><path d=\"m9.17 14.83-4.24 4.24\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/>","waves":"<path d=\"M2 12q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 19q2.5 2 5 0t5 0 5 0 5 0\"/><path d=\"M2 5q2.5 2 5 0t5 0 5 0 5 0\"/>","hard-hat":"<path d=\"M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5\"/><path d=\"M14 6a6 6 0 0 1 6 6v3\"/><path d=\"M4 15v-3a6 6 0 0 1 6-6\"/><rect x=\"2\" y=\"15\" width=\"20\" height=\"4\" rx=\"1\"/>","flashlight":"<path d=\"M12 13v1\"/><path d=\"M17 2a1 1 0 0 1 1 1v4a3 3 0 0 1-.6 1.8l-.6.8A4 4 0 0 0 16 12v8a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-8a4 4 0 0 0-.8-2.4l-.6-.8A3 3 0 0 1 6 7V3a1 1 0 0 1 1-1z\"/><path d=\"M6 6h12\"/>","phone-off":"<path d=\"M10.1 13.9a14 14 0 0 0 3.732 2.668 1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2 18 18 0 0 1-12.728-5.272\"/><path d=\"M22 2 2 22\"/><path d=\"M4.76 13.582A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 .244.473\"/>","skip-forward":"<path d=\"M21 4v16\"/><path d=\"M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z\"/>","award":"<path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\"/><circle cx=\"12\" cy=\"8\" r=\"6\"/>","school":"<path d=\"M14 21v-3a2 2 0 0 0-4 0v3\"/><path d=\"M18 4.933V21\"/><path d=\"m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6\"/><path d=\"m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11\"/><path d=\"M6 4.933V21\"/><circle cx=\"12\" cy=\"9\" r=\"2\"/>","hand-helping":"<path d=\"M11 12h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 14\"/><path d=\"m7 18 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9\"/><path d=\"m2 13 6 6\"/>","clipboard-list":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4\"/><path d=\"M12 16h4\"/><path d=\"M8 11h.01\"/><path d=\"M8 16h.01\"/>","user-check":"<path d=\"m16 11 2 2 4-4\"/><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/>","ban":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M4.929 4.929 19.07 19.071\"/>","sunset":"<path d=\"M12 10V2\"/><path d=\"m4.93 10.93 1.41 1.41\"/><path d=\"M2 18h2\"/><path d=\"M20 18h2\"/><path d=\"m19.07 10.93-1.41 1.41\"/><path d=\"M22 22H2\"/><path d=\"m16 6-4 4-4-4\"/><path d=\"M16 18a4 4 0 0 0-8 0\"/>","droplets":"<path d=\"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z\"/><path d=\"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97\"/>","circle-x":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m15 9-6 6\"/><path d=\"m9 9 6 6\"/>","badge-check":"<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"/><path d=\"m16 9-5.5 5.5L8 12\"/>"};window.BUILD={"aframe":"1.8.0","dados_versao":"1.2.0","alvo":"arquivo","gerado_em":"2026-11-18T08:08:11-03:00"};</script>
+<script>
+/* cena.js — Vila Baru (bairro fictício) feita só com primitivas e cores do A-Frame.
+   Nenhum modelo .glb/.gltf, nenhuma textura de arquivo, nenhum a-text: todo texto fica em HTML.
+   Expõe window.CENA com: vista(), luz(), chuva(), corrego(), travessia(), ruaAlagada(), sarjeta(),
+   neblina(), mostrar(), rotulos(), arrastar(), comitivaEm(). */
+(function () {
+  'use strict';
+  var THREE = AFRAME.THREE;
+  var P = window.DADOS_JOGO.paleta;
+  var cenaEl = document.querySelector('a-scene');
+  var mundo = document.getElementById('mundo');
+  var rig = document.getElementById('rig');
+  var REDUZIR = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------------------------------------------------------------- utilidades
+  function ent(pai, geo, mat, pos, rot, id) {
+    var e = document.createElement('a-entity');
+    if (id) e.id = id;
+    if (geo) e.setAttribute('geometry', geo);
+    if (mat) e.setAttribute('material', Object.assign({ flatShading: true, roughness: 0.92, metalness: 0 }, mat));
+    if (pos) e.setAttribute('position', pos);
+    if (rot) e.setAttribute('rotation', rot);
+    (pai || mundo).appendChild(e);
+    return e;
+  }
+  function grupo(pai, pos, rot, id) { return ent(pai, null, null, pos, rot, id); }
+  function caixa(pai, w, h, d, cor, pos, rot, extra) {
+    return ent(pai, { primitive: 'box', width: w, height: h, depth: d }, Object.assign({ color: cor }, extra || {}), pos, rot);
+  }
+  function v3(x, y, z) { return new THREE.Vector3(x, y, z); }
+  function misturar(a, b, t) { return new THREE.Color(a).lerp(new THREE.Color(b), Math.max(0, Math.min(1, t))); }
+
+  // ---------------------------------------------------------------- tweens simples
+  var tweens = [];
+  function animar(obj, prop, alvo, dur, fim) {
+    tweens = tweens.filter(function (t) { return !(t.obj === obj && t.prop === prop); });
+    var de = obj[prop];
+    if (de && typeof de.clone === 'function') de = de.clone();
+    if (REDUZIR) dur = Math.min(dur, 150);
+    tweens.push({ obj: obj, prop: prop, de: de, para: alvo, t0: performance.now(), dur: Math.max(1, dur), fim: fim });
+  }
+  function suave(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+  // ---------------------------------------------------------------- componentes
+  AFRAME.registerComponent('fluxo', {
+    schema: { w: { default: 5 }, d: { default: 6 }, vel: { default: 1.6 }, n: { default: 12 }, cor: { default: '#D3EEF3' }, comp: { default: 0.9 }, galhos: { default: 0 } },
+    init: function () {
+      this.itens = [];
+      var d = this.data;
+      for (var i = 0; i < d.n + d.galhos; i++) {
+        var galho = i >= d.n;
+        var e = galho
+          ? ent(this.el, { primitive: 'cylinder', radius: 0.05, height: 0.9, segmentsRadial: 5 }, { color: '#5A3E26' }, null, { x: 90, y: 0, z: 90 * Math.random() })
+          : ent(this.el, { primitive: 'box', width: 0.07, height: 0.012, depth: d.comp * (0.6 + Math.random() * 0.8) }, { color: d.cor, opacity: 0.85, transparent: true });
+        var o = { e: e, x: (Math.random() - 0.5) * d.w, z: (Math.random() - 0.5) * d.d, f: 0.7 + Math.random() * 0.6, galho: galho };
+        this.itens.push(o);
+      }
+    },
+    tick: function (t, dt) {
+      if (!dt || this.el.object3D.visible === false) return;
+      var d = this.data, s = Math.min(dt, 60) / 1000;
+      for (var i = 0; i < this.itens.length; i++) {
+        var o = this.itens[i];
+        o.z -= d.vel * o.f * s * (REDUZIR ? 0.3 : 1);
+        if (o.z < -d.d / 2) { o.z += d.d; o.x = (Math.random() - 0.5) * d.w; }
+        var ob = o.e.object3D;
+        ob.position.set(o.x, o.galho ? 0.03 + Math.sin(t / 180 + i) * 0.02 : 0.012, o.z);
+        if (o.galho) ob.rotation.y += s * 1.4;
+      }
+    }
+  });
+
+  AFRAME.registerComponent('chuva', {
+    schema: { n: { default: 90 }, raio: { default: 8 }, alto: { default: 9 } },
+    init: function () {
+      this.gotas = [];
+      this.centro = v3(10, 0, -6);
+      this.ativas = this.data.n;
+      for (var i = 0; i < this.data.n; i++) {
+        var e = ent(this.el, { primitive: 'box', width: 0.018, height: 0.55, depth: 0.018 }, { color: '#DCE8F2', opacity: 0.55, transparent: true, flatShading: false }, null, { x: 0, y: 0, z: 12 });
+        this.gotas.push({ e: e, x: 0, y: Math.random() * this.data.alto, z: 0, v: 9 + Math.random() * 4 });
+        this.sortear(this.gotas[i]);
+      }
+    },
+    sortear: function (g) {
+      var r = this.data.raio;
+      g.x = this.centro.x + (Math.random() - 0.5) * 2 * r;
+      g.z = this.centro.z + (Math.random() - 0.5) * 2 * r;
+    },
+    tick: function (t, dt) {
+      if (!dt) return;
+      var s = Math.min(dt, 60) / 1000;
+      for (var i = 0; i < this.gotas.length; i++) {
+        var g = this.gotas[i], ob = g.e.object3D;
+        ob.visible = i < this.ativas;
+        if (!ob.visible) continue;
+        g.y -= g.v * s;
+        if (g.y < this.centro.y - 1) { g.y = this.centro.y + this.data.alto; this.sortear(g); }
+        ob.position.set(g.x - (g.y - this.centro.y) * 0.18, g.y, g.z);
+      }
+    }
+  });
+
+  // atualiza tweens, câmera e rótulos HTML projetados
+  var rotulosAtivos = [];
+  var rotulosDiv = document.getElementById('rotulos3d');
+  var tmp = new THREE.Vector3();
+  AFRAME.registerComponent('diretor', {
+    tick: function () {
+      var agora = performance.now(), fins = [];
+      tweens = tweens.filter(function (tw) {
+        var k = Math.min(1, (agora - tw.t0) / tw.dur), e = suave(k);
+        if (typeof tw.de === 'number') tw.obj[tw.prop] = tw.de + (tw.para - tw.de) * e;
+        else if (tw.de && tw.de.isVector3) tw.obj[tw.prop].lerpVectors(tw.de, tw.para, e);
+        else if (tw.de && tw.de.isQuaternion) tw.obj[tw.prop].slerpQuaternions(tw.de, tw.para, e);
+        if (k >= 1 && tw.fim) fins.push(tw.fim);
+        return k < 1;
+      });
+      // callbacks depois do filtro: um callback pode criar novos tweens
+      for (var f = 0; f < fins.length; f++) fins[f]();
+      if (camTween) {
+        var k = Math.min(1, (agora - camTween.t0) / camTween.dur), e = suave(k);
+        rig.object3D.position.lerpVectors(camTween.p0, camTween.p1, e);
+        rig.object3D.quaternion.slerpQuaternions(camTween.q0, camTween.q1, e);
+        if (k >= 1) camTween = null;
+      }
+      var cam = cenaEl.camera;
+      if (!cam || cenaEl.is('vr-mode')) { rotulosDiv.style.display = 'none'; return; }
+      rotulosDiv.style.display = '';
+      var w = rotulosDiv.clientWidth, h = rotulosDiv.clientHeight;
+      for (var i = 0; i < rotulosAtivos.length; i++) {
+        var r = rotulosAtivos[i];
+        tmp.copy(r.pos).project(cam);
+        var fora = tmp.z > 1 || tmp.z < -1 || tmp.x < -1.05 || tmp.x > 1.05 || tmp.y < -1.05 || tmp.y > 1.05;
+        r.div.style.display = fora ? 'none' : '';
+        if (!fora) {
+          r.div.style.left = ((tmp.x + 1) / 2 * w).toFixed(1) + 'px';
+          r.div.style.top = ((1 - tmp.y) / 2 * h).toFixed(1) + 'px';
+        }
+      }
+    }
+  });
+
+  // ---------------------------------------------------------------- câmera
+  var camTween = null;
+  var VISTAS = {
+    geral: { p: [17, 9.5, -31], a: [17, 0.5, -3] },
+    base: { p: [23.5, 5.0, 19.5], a: [30, 2.8, 9.5] },
+    corrego: { p: [1.6, 2.9, -10.6], a: [4.0, -0.55, -17.4] },
+    valdir: { p: [1.8, 2.0, -11.6], a: [0.2, 1.0, -5.0] },
+    celeste: { p: [22.4, 1.75, -10.6], a: [19.6, 0.85, -5.2] },
+    trecho1: { p: [17.2, 2.5, -11.4], a: [24.5, 0.3, -7.2] },
+    trecho2: { p: [21.2, 2.7, -12.4], a: [29.2, 0.1, -8.2] },
+    trecho3: { p: [38.6, 4.3, 10.2], a: [31.0, 2.3, 6.9] },
+    ponto_seco: { p: [30.0, 6.0, -0.2], a: [35.8, 2.6, 11.6] },
+    gameover: { p: [22.6, 2.6, -14.2], a: [28.6, 0.0, -10.0] },
+    gameover_cima: { p: [35.4, 3.5, 8.9], a: [31.6, 2.4, 7.0] },
+    regua: { p: [19.0, 0.8, -7.0], a: [18.25, 0.5, -5.05] }
+  };
+  function quatOlhando(p, a) {
+    var m = new THREE.Matrix4().lookAt(p, a, v3(0, 1, 0));
+    return new THREE.Quaternion().setFromRotationMatrix(m);
+  }
+  var vistaAtual = 'geral';
+  function vista(nome, dur) {
+    var v = VISTAS[nome]; if (!v) return;
+    vistaAtual = nome;
+    var p1 = v3(v.p[0], v.p[1], v.p[2]), a = v3(v.a[0], v.a[1], v.a[2]);
+    var q1 = quatOlhando(p1, a);
+    var o = rig.object3D;
+    if (cenaEl.is('vr-mode')) {
+      // Em VR: sem inclinação do horizonte e sem câmera em movimento (conforto); o óculos soma a altura da pessoa.
+      var yaw = Math.atan2(-(a.x - p1.x), -(a.z - p1.z));
+      q1 = new THREE.Quaternion().setFromAxisAngle(v3(0, 1, 0), yaw);
+      p1.y = Math.max(p1.y - 1.6, p1.z > 5 ? 2.55 : 0.15);
+      dur = 0;
+    }
+    if (!dur || REDUZIR) { o.position.copy(p1); o.quaternion.copy(q1); camTween = null; }
+    else camTween = { p0: o.position.clone(), q0: o.quaternion.clone(), p1: p1, q1: q1, t0: performance.now(), dur: dur };
+    // a chuva acompanha o ponto para onde a câmera olha
+    var dir = a.clone().sub(p1).normalize();
+    var c = p1.clone().add(dir.multiplyScalar(7));
+    var ch = document.getElementById('chuva3d');
+    if (ch && ch.components.chuva) { ch.components.chuva.centro.set(c.x, Math.min(p1.y, a.y + 1.5) - 0.5, c.z); }
+    else if (ch) ch.addEventListener('loaded', function () { vista(nome, 0); }, { once: true });
+  }
+
+  // ---------------------------------------------------------------- mundo
+  var cor = {
+    grama: '#6F8C58', grama2: '#5F7D4C', terra: '#6E5A45', lama: '#4E4133', asfalto: '#3D4550',
+    calcada: '#A7A69C', muro: '#8D8C84', telhado: '#8E4B3A', telhado2: '#6E5A55', porta: '#4A3326', janela: '#F3D88A'
+  };
+  function montar() {
+    // terreno: margem norte, leito do córrego, baixada (Rua do Córrego) e platô (Rua de Cima)
+    caixa(null, 260, 2, 90, cor.grama2, { x: 5, y: -1, z: -63 });
+    caixa(null, 260, 1, 4, cor.lama, { x: 5, y: -1.7, z: -16 });
+    caixa(null, 260, 2, 19, cor.grama, { x: 5, y: -1, z: -4.5 });
+    caixa(null, 260, 3, 90, cor.grama, { x: 5, y: 1.0, z: 50 });
+    caixa(null, 260, 2.52, 0.4, cor.muro, { x: 5, y: 1.24, z: 5.0 });
+    // Rua do Córrego, calçada e Rua de Cima
+    caixa(null, 74, 0.02, 6, cor.asfalto, { x: 4, y: 0.01, z: -9 });
+    caixa(null, 74, 0.15, 1.1, cor.calcada, { x: 4, y: 0.075, z: -5.55 });
+    caixa(null, 90, 0.02, 4.2, cor.asfalto, { x: 8, y: 2.51, z: 7.6 });
+    caixa(null, 90, 0.1, 0.5, cor.calcada, { x: 8, y: 2.55, z: 5.45 });
+    // faixas da rua
+    for (var fx = -28; fx < 40; fx += 6) caixa(null, 2.2, 0.022, 0.14, '#E8E2C8', { x: fx, y: 0.022, z: -9 });
+    for (var fx2 = -28; fx2 < 52; fx2 += 6) caixa(null, 2.2, 0.022, 0.14, '#E8E2C8', { x: fx2, y: 2.522, z: 7.6 });
+    // ladeiras: entre as casas 4 e 5 (para a Rua de Cima) e no fim da rua (para a escola)
+    caixa(null, 3.4, 0.2, 10.31, '#59606B', { x: 15, y: 1.2, z: 0 }, { x: -14.04, y: 0, z: 0 });
+    caixa(null, 3.4, 0.2, 11.28, '#59606B', { x: 37.5, y: 1.2, z: -0.4 }, { x: -12.8, y: 0, z: 0 });
+    // casas da Rua do Córrego (casa 5 = Dona Celeste, a última da rua)
+    var cores = ['#C9B79C', '#9DB4C0', '#D8A47F', '#B5C99A', '#E2C6C0'];
+    for (var i = 0; i < 5; i++) {
+      var x = -20 + i * 10;
+      var g = grupo(null, { x: x, y: 0.15, z: -2 });
+      caixa(g, 6, 3, 6, cores[i], { x: 0, y: 1.5, z: 0 });
+      ent(g, { primitive: 'cone', radiusBottom: 4.6, radiusTop: 0.01, height: 1.7, segmentsRadial: 4 }, { color: i % 2 ? cor.telhado2 : cor.telhado }, { x: 0, y: 3.85, z: 0 }, { x: 0, y: 45, z: 0 });
+      caixa(g, 1.0, 2.0, 0.08, cor.porta, { x: 0, y: 1.0, z: -3.02 });
+      caixa(g, 1.1, 0.9, 0.06, cor.janela, { x: -1.9, y: 1.7, z: -3.02 }, null, { emissive: '#7a5a10', emissiveIntensity: 0.35 });
+      caixa(g, 1.1, 0.9, 0.06, cor.janela, { x: 1.9, y: 1.7, z: -3.02 }, null, { emissive: '#7a5a10', emissiveIntensity: 0.35 });
+    }
+    // régua pintada no muro da Dona Celeste (cerca de 15, 30 e 60 cm)
+    var rm = grupo(null, { x: 18.15, y: 0.15, z: -5.07 });
+    caixa(rm, 0.22, 0.8, 0.02, '#FFFFFF', { x: 0, y: 0.4, z: 0 });
+    [0.15, 0.30, 0.60].forEach(function (h) { caixa(rm, 0.3, 0.025, 0.03, P.marinho, { x: 0, y: h, z: -0.005 }); });
+    // escola (Ponto Seco) e ponto de reunião da equipe, no alto
+    caixa(null, 14, 4.6, 7, '#D7CBB0', { x: 40.5, y: 4.8, z: 15.6 });
+    caixa(null, 14.6, 0.4, 7.6, '#6E5A55', { x: 40.5, y: 7.3, z: 15.6 });
+    for (var j = 0; j < 4; j++) caixa(null, 1.6, 1.1, 0.06, cor.janela, { x: 35.6 + j * 3.2, y: 4.9, z: 12.08 }, null, { emissive: '#7a5a10', emissiveIntensity: 0.45 });
+    caixa(null, 2.2, 2.4, 0.08, '#2F4A6B', { x: 40.5, y: 3.7, z: 12.06 });
+    caixa(null, 14, 0.04, 2.0, P.areia, { x: 40.5, y: 2.53, z: 10.9 }, null, { emissive: '#6b5a33', emissiveIntensity: 0.15 });
+    ent(null, { primitive: 'cylinder', radius: 0.05, height: 4.2, segmentsRadial: 6 }, { color: '#C9CED6' }, { x: 33.6, y: 4.6, z: 11.2 });
+    caixa(null, 0.9, 0.55, 0.03, P.amarelo, { x: 34.08, y: 6.35, z: 11.2 });
+    ent(null, { primitive: 'ring', radiusInner: 1.15, radiusOuter: 1.4, segmentsTheta: 40 }, { color: P.amarelo, side: 'double', flatShading: false }, { x: 30.2, y: 2.545, z: 11.0 }, { x: -90, y: 0, z: 0 });
+    // viatura (genérica, sem marca) na Rua de Cima
+    var vt = grupo(null, { x: 26.5, y: 2.52, z: 8.3 }, { x: 0, y: 8, z: 0 });
+    caixa(vt, 4.2, 1.2, 1.9, '#E9EEF3', { x: 0, y: 0.95, z: 0 });
+    caixa(vt, 2.3, 0.8, 1.8, '#E9EEF3', { x: -0.6, y: 1.9, z: 0 });
+    caixa(vt, 4.22, 0.22, 1.92, P.laranja, { x: 0, y: 1.05, z: 0 });
+    caixa(vt, 0.5, 0.14, 1.0, P.azul_destaque, { x: -0.6, y: 2.37, z: 0 }, null, { emissive: P.azul_destaque, emissiveIntensity: 0.8 });
+    [[-1.4, -0.95], [1.4, -0.95], [-1.4, 0.95], [1.4, 0.95]].forEach(function (r) {
+      ent(vt, { primitive: 'cylinder', radius: 0.38, height: 0.3, segmentsRadial: 10 }, { color: '#1E232A' }, { x: r[0], y: 0.38, z: r[1] }, { x: 90, y: 0, z: 0 });
+    });
+    // árvores na margem
+    [[-26, -12.6], [-12, -12.8], [12, -12.7], [-6, 0.5], [26, 2], [46, 9.6], [-24, 9.5]].forEach(function (a, k) {
+      var y0 = a[1] > 5 ? 2.5 : 0;
+      ent(null, { primitive: 'cylinder', radius: 0.18, height: 2.2, segmentsRadial: 6 }, { color: '#5B4330' }, { x: a[0], y: y0 + 1.1, z: a[1] });
+      ent(null, { primitive: 'sphere', radius: 1.5 + (k % 3) * 0.3, segmentsWidth: 7, segmentsHeight: 5 }, { color: k % 2 ? '#3F6B3A' : '#4C7A42' }, { x: a[0], y: y0 + 3.0, z: a[1] });
+    });
+    // postes
+    [-15, 5, 25].forEach(function (x) {
+      ent(null, { primitive: 'cylinder', radius: 0.07, height: 5, segmentsRadial: 6 }, { color: '#7C838C' }, { x: x, y: 2.5, z: -5.95 });
+      caixa(null, 0.6, 0.12, 0.25, '#FFF3C4', { x: x, y: 4.95, z: -6.25 }, null, { emissive: '#FFE7A0', emissiveIntensity: 0.6 });
+    });
+
+    // ---- água (sempre na cor 'agua')
+    // córrego (o nível sobe com o relógio)
+    ent(null, { primitive: 'box', width: 260, height: 0.04, depth: 4 }, { color: P.agua, opacity: 0.9, transparent: true, roughness: 0.3, flatShading: false }, { x: 5, y: -0.95, z: -16 }, null, 'agua_corrego');
+    var fc = grupo(document.getElementById('agua_corrego'), { x: 0, y: 0.03, z: 0 }, { x: 0, y: -90, z: 0 });
+    fc.setAttribute('fluxo', { w: 3.4, d: 90, vel: 2.4, n: 34, comp: 1.6 });
+    // água sobre a Rua do Córrego (só no Alerta máximo)
+    var ar = ent(null, { primitive: 'box', width: 66, height: 0.03, depth: 9.6 }, { color: P.agua, opacity: 0.86, transparent: true, roughness: 0.3, flatShading: false }, { x: 2, y: -0.2, z: -9.4 }, null, 'agua_rua');
+    var far = grupo(ar, { x: 0, y: 0.02, z: 0 }, { x: 0, y: -90, z: 0 });
+    far.setAttribute('fluxo', { w: 9, d: 60, vel: 1.8, n: 22, comp: 1.2, galhos: 2 });
+    // travessia baixa (bueiro sob a rua): água em movimento atravessando a via
+    var at = ent(null, { primitive: 'box', width: 6, height: 0.03, depth: 9.0 }, { color: P.agua, opacity: 0.9, transparent: true, roughness: 0.25, flatShading: false }, { x: 30, y: -0.2, z: -9.6 }, null, 'agua_travessia');
+    grupo(at, { x: 0, y: 0.02, z: 0 }).setAttribute('fluxo', { w: 5.6, d: 9, vel: 2.6, n: 18, comp: 1.1, galhos: 3 });
+    // canal de drenagem ao sul da rua (vem do bueiro sob a Rua de Cima)
+    var canal = ent(at, { primitive: 'box', width: 2, height: 0.03, depth: 9.8 }, { color: P.agua, opacity: 0.9, transparent: true, roughness: 0.25, flatShading: false }, { x: 0, y: 0, z: 9.5 });
+    grupo(canal, { x: 0, y: 0.02, z: 0 }).setAttribute('fluxo', { w: 1.6, d: 9.8, vel: 2.2, n: 8, comp: 0.9 });
+    caixa(null, 2.0, 0.8, 0.2, '#1F2328', { x: 30, y: -0.45, z: -14.08 });
+    caixa(null, 2.0, 1.0, 0.3, '#1F2328', { x: 30, y: 0.6, z: 4.82 });
+    caixa(null, 2.0, 0.02, 9.8, cor.lama, { x: 30, y: 0.004, z: 0 });
+    // régua da travessia (cerca de 15, 30 e 60 cm)
+    var rt = grupo(null, { x: 27.4, y: 0, z: -10.6 }, { x: 0, y: 90, z: 0 });
+    ent(rt, { primitive: 'cylinder', radius: 0.05, height: 1.3, segmentsRadial: 6 }, { color: '#9AA1A9' }, { x: 0.16, y: 0.65, z: 0 });
+    caixa(rt, 0.2, 0.9, 0.03, '#FFFFFF', { x: 0, y: 0.45, z: -0.03 });
+    [0.15, 0.30, 0.60].forEach(function (h) { caixa(rt, 0.28, 0.025, 0.04, P.marinho, { x: 0, y: h, z: -0.05 }); });
+    // sarjeta da Rua de Cima e lâmina d'água (chão pouco visível)
+    var sj = ent(null, { primitive: 'box', width: 40, height: 0.02, depth: 0.7 }, { color: P.agua, opacity: 0.9, transparent: true, flatShading: false }, { x: 30, y: 2.0, z: 5.95 }, null, 'agua_sarjeta');
+    grupo(sj, { x: 0, y: 0.015, z: 0 }, { x: 0, y: -90, z: 0 }).setAttribute('fluxo', { w: 0.5, d: 40, vel: 1.3, n: 12, comp: 0.7 });
+    ent(null, { primitive: 'box', width: 40, height: 0.02, depth: 4.2 }, { color: P.agua_clara, opacity: 0.0, transparent: true, flatShading: false }, { x: 30, y: 2.535, z: 7.6 }, null, 'lamina_cima');
+    // poças paradas na calçada e na rua (trecho verde)
+    [[22.5, -6.9, 0.6], [24.6, -7.6, 0.45], [21.2, -8.4, 0.5], [-3, -8.2, 0.7], [9, -9.8, 0.55]].forEach(function (p) {
+      ent(null, { primitive: 'circle', radius: p[2], segments: 14 }, { color: P.agua, opacity: 0.75, transparent: true, flatShading: false }, { x: p[0], y: 0.026, z: p[1] }, { x: -90, y: 0, z: 0 });
+    });
+
+    // ---- régua do córrego (faixas hipotéticas do cenário)
+    var rc = grupo(null, { x: 4, y: 0, z: -17.72 });
+    ent(rc, { primitive: 'cylinder', radius: 0.06, height: 2.3, segmentsRadial: 6 }, { color: '#9AA1A9' }, { x: 0.2, y: -0.15, z: 0 });
+    [[-1.2, -0.6, P.verde], [-0.6, -0.3, P.amarelo], [-0.3, 0.0, P.laranja], [0.0, 0.6, P.vermelho]].forEach(function (f) {
+      caixa(rc, 0.3, f[1] - f[0], 0.04, f[2], { x: 0, y: (f[0] + f[1]) / 2, z: 0.03 }, null, { emissive: f[2], emissiveIntensity: 0.25 });
+    });
+
+    // ---- personagens (fictícios), só com primitivas
+    pessoa(null, { x: 20.6, y: 0.15, z: -5.75 }, 180, { roupa: '#8E6BBF', saia: true, cabelo: '#ECECEC', pele: '#C58C6A', altura: 0.93, sacola: true }, 'celeste_casa');
+    cachorro(null, { x: 21.3, y: 0.15, z: -6.1 }, 200, 'pipoca_casa');
+    pessoa(null, { x: 0.7, y: 0.15, z: -5.75 }, 180, { roupa: '#7C6A4E', cabelo: '#D9D9D9', pele: '#9C6B4E', altura: 0.95, bengala: true }, 'valdir_casa');
+    // dupla de agentes (EPI: colete, capacete, lanterna) para a triagem
+    var dp = grupo(null, { x: 1.9, y: 0.15, z: -7.6 }, { x: 0, y: 200, z: 0 }, 'dupla');
+    pessoa(dp, { x: -0.5, y: 0, z: 0 }, 0, agente());
+    pessoa(dp, { x: 0.55, y: 0, z: 0.2 }, 0, agente());
+    var cad = grupo(dp, { x: 0, y: 0, z: -0.9 }, null, 'cadeira');
+    caixa(cad, 0.55, 0.08, 0.5, '#2D3E57', { x: 0, y: 0.55, z: 0 });
+    caixa(cad, 0.55, 0.6, 0.06, '#2D3E57', { x: 0, y: 0.85, z: 0.24 });
+    [-0.3, 0.3].forEach(function (x) { ent(cad, { primitive: 'cylinder', radius: 0.18, height: 0.05, segmentsRadial: 12 }, { color: '#15181C' }, { x: x, y: 0.18, z: 0.15 }, { x: 0, y: 0, z: 90 }); });
+    // comitiva da rota: dupla + Dona Celeste + Pipoca
+    var cm = grupo(null, { x: 23.5, y: 0.15, z: -7 }, { x: 0, y: -90, z: 0 }, 'comitiva');
+    pessoa(cm, { x: 0, y: 0, z: -0.2 }, 0, agente(), 'agente_lider');
+    pessoa(cm, { x: 0.9, y: 0, z: 0.9 }, 0, agente());
+    pessoa(cm, { x: -0.7, y: 0, z: 1.0 }, 0, { roupa: '#8E6BBF', saia: true, cabelo: '#ECECEC', pele: '#C58C6A', altura: 0.93, sacola: true });
+    cachorro(cm, { x: -0.6, y: 0, z: 1.8 }, 0);
+    // equipe na base (briefing) e no ponto de reunião
+    var eq = grupo(null, { x: 30.2, y: 2.55, z: 11.0 }, { x: 0, y: 0, z: 0 }, 'equipe');
+    [[-0.6, -0.3, 160], [0.6, -0.4, 200], [-0.2, 0.6, 20], [0.7, 0.5, -30]].forEach(function (q) { pessoa(eq, { x: q[0], y: 0, z: q[1] }, q[2], agente()); });
+    // moradores no Ponto Seco
+    var ps = grupo(null, { x: 41, y: 2.55, z: 10.9 }, null, 'moradores_ps');
+    pessoa(ps, { x: -1.6, y: 0, z: 0 }, 160, { roupa: '#8E6BBF', saia: true, cabelo: '#ECECEC', pele: '#C58C6A', altura: 0.93 });
+    cachorro(ps, { x: -0.9, y: 0, z: -0.3 }, 150, 'pipoca_ps');
+    pessoa(ps, { x: 0.2, y: 0, z: 0.1 }, 190, { roupa: '#7C6A4E', cabelo: '#D9D9D9', pele: '#9C6B4E', altura: 0.95, bengala: true });
+    pessoa(ps, { x: 1.4, y: 0, z: -0.2 }, 200, { roupa: '#3D7EA6', cabelo: '#2A1E16', pele: '#B07A57', altura: 1.0 }, 'familia_1');
+    pessoa(ps, { x: 2.2, y: 0, z: 0.2 }, 170, { roupa: '#D98E48', cabelo: '#2A1E16', pele: '#B07A57', altura: 0.7 }, 'familia_2');
+    pessoa(ps, { x: 3.0, y: 0, z: -0.1 }, 185, { roupa: '#A23E48', cabelo: '#3A2A1E', pele: '#B07A57', altura: 0.98 }, 'familia_3');
+    pessoa(ps, { x: 4.3, y: 0, z: 0.1 }, 175, { roupa: '#5B7F5E', cabelo: '#6B5444', pele: '#E0B08E', altura: 1.0 });
+    pessoa(ps, { x: 5.1, y: 0, z: -0.15 }, 190, { roupa: '#444C7A', cabelo: '#BBB', pele: '#E0B08E', altura: 0.97 });
+
+    // chuva 3D (também visível em VR)
+    ent(null, null, null, null, null, 'chuva3d').setAttribute('chuva', { n: 90, raio: 8, alto: 9 });
+
+    // luzes
+    ent(null, null, null, null, null, 'luz_ceu').setAttribute('light', { type: 'hemisphere', color: '#D5E2F0', groundColor: '#5A4A38', intensity: 1.6 });
+    var sol = ent(null, null, null, { x: -30, y: 25, z: 20 }, null, 'luz_sol');
+    sol.setAttribute('light', { type: 'directional', color: '#FFD9B0', intensity: 1.4 });
+    ent(null, null, null, null, null, 'luz_amb').setAttribute('light', { type: 'ambient', color: '#9FB3C8', intensity: 0.5 });
+
+    rotulosPadrao();
+  }
+
+  function agente() { return { roupa: P.azul_destaque, colete: true, capacete: true, pele: '#B07A57', altura: 1.0, lanterna: true }; }
+  function pessoa(pai, pos, rotY, o, id) {
+    var a = o.altura || 1;
+    var g = grupo(pai, pos, { x: 0, y: rotY || 0, z: 0 }, id);
+    var corpo = grupo(g, { x: 0, y: 0, z: 0 });
+    corpo.classList.add('corpo');
+    caixa(corpo, 0.34 * a, 0.8 * a, 0.22 * a, o.saia ? o.pele : '#2B3440', { x: 0, y: 0.4 * a, z: 0 });
+    if (o.saia) ent(corpo, { primitive: 'cone', radiusBottom: 0.33 * a, radiusTop: 0.2 * a, height: 0.62 * a, segmentsRadial: 8 }, { color: o.roupa }, { x: 0, y: 0.62 * a, z: 0 });
+    ent(corpo, { primitive: 'cylinder', radius: 0.2 * a, height: 0.62 * a, segmentsRadial: 8 }, { color: o.roupa }, { x: 0, y: 1.12 * a, z: 0 });
+    if (o.colete) ent(corpo, { primitive: 'cylinder', radius: 0.235 * a, height: 0.46 * a, segmentsRadial: 8 }, { color: P.laranja, emissive: P.laranja, emissiveIntensity: 0.2 }, { x: 0, y: 1.15 * a, z: 0 });
+    caixa(corpo, 0.62 * a, 0.12 * a, 0.12 * a, o.colete ? P.laranja : o.roupa, { x: 0, y: 1.3 * a, z: 0 });
+    ent(corpo, { primitive: 'sphere', radius: 0.15 * a, segmentsWidth: 10, segmentsHeight: 8 }, { color: o.pele }, { x: 0, y: 1.6 * a, z: 0 });
+    if (o.capacete) ent(corpo, { primitive: 'sphere', radius: 0.17 * a, segmentsWidth: 10, segmentsHeight: 6, thetaLength: 90 }, { color: '#F4F4F0' }, { x: 0, y: 1.63 * a, z: 0 });
+    else if (o.cabelo) ent(corpo, { primitive: 'sphere', radius: 0.158 * a, segmentsWidth: 10, segmentsHeight: 6, thetaLength: 80 }, { color: o.cabelo }, { x: 0, y: 1.63 * a, z: 0.01 });
+    if (o.bengala) ent(corpo, { primitive: 'cylinder', radius: 0.02, height: 0.9 * a, segmentsRadial: 5 }, { color: '#5B4330' }, { x: 0.36 * a, y: 0.45 * a, z: -0.12 }, { x: 0, y: 0, z: -6 });
+    if (o.sacola) caixa(corpo, 0.22, 0.26, 0.1, '#C9A227', { x: -0.36 * a, y: 0.85 * a, z: 0 });
+    if (o.lanterna) caixa(corpo, 0.08, 0.08, 0.22, '#FFF6CC', { x: 0.33 * a, y: 1.05 * a, z: -0.15 }, null, { emissive: '#FFF0A8', emissiveIntensity: 1 });
+    return g;
+  }
+  function cachorro(pai, pos, rotY, id) {
+    var g = grupo(pai, pos, { x: 0, y: rotY || 0, z: 0 }, id);
+    var c = '#C98B4B';
+    caixa(g, 0.24, 0.22, 0.55, c, { x: 0, y: 0.36, z: 0 });
+    caixa(g, 0.2, 0.2, 0.24, c, { x: 0, y: 0.52, z: -0.34 });
+    caixa(g, 0.1, 0.08, 0.12, '#8A5A2B', { x: 0, y: 0.47, z: -0.5 });
+    [[-0.08, 0.2], [0.08, 0.2], [-0.08, -0.2], [0.08, -0.2]].forEach(function (p) { caixa(g, 0.06, 0.25, 0.06, '#8A5A2B', { x: p[0], y: 0.125, z: p[1] }); });
+    caixa(g, 0.05, 0.05, 0.25, c, { x: 0, y: 0.5, z: 0.36 }, { x: -35, y: 0, z: 0 });
+    caixa(g, 0.06, 0.1, 0.04, '#8A5A2B', { x: -0.08, y: 0.66, z: -0.32 });
+    caixa(g, 0.06, 0.1, 0.04, '#8A5A2B', { x: 0.08, y: 0.66, z: -0.32 });
+    return g;
+  }
+
+  // ---------------------------------------------------------------- rótulos HTML projetados
+  var ROT = {};
+  function rotulo(id, texto, pos, classe) {
+    var d = document.createElement('div');
+    d.className = 'r3d' + (classe ? ' ' + classe : '');
+    d.textContent = texto;
+    d.style.display = 'none';
+    rotulosDiv.appendChild(d);
+    ROT[id] = { div: d, pos: v3(pos[0], pos[1], pos[2]) };
+  }
+  function rotulosPadrao() {
+    var C = window.DADOS_JOGO;
+    rotulo('corrego', C.cenario.corrego, [-6, 0.2, -16]);
+    rotulo('rua_corrego', 'Rua do Córrego', [-8, 0.3, -9]);
+    rotulo('rua_cima', 'Rua de Cima', [2, 2.8, 7.6]);
+    rotulo('casa_celeste', 'Casa da Dona Celeste', [20, 4.9, -2]);
+    rotulo('casa_valdir', 'Casa do Seu Valdir', [0, 4.9, -2]);
+    rotulo('travessia', 'Travessia baixa', [30, 0.9, -9.6]);
+    rotulo('ponto_seco', 'Ponto Seco (escola)', [40.5, 7.9, 15.6], 'seco');
+    rotulo('reuniao', 'Ponto de reunião da equipe', [30.2, 4.6, 11.0], 'seco');
+    rotulo('regua_corrego', 'Régua do córrego', [4, 0.95, -17.72]);
+    rotulo('m15', '15 cm', [18.32, 0.30, -5.1], 'regua');
+    rotulo('m30', '30 cm', [18.32, 0.45, -5.1], 'regua');
+    rotulo('m60', '60 cm', [18.32, 0.75, -5.1], 'regua');
+    rotulo('t15', '15', [27.3, 0.15, -10.6], 'regua');
+    rotulo('t30', '30', [27.3, 0.30, -10.6], 'regua');
+    rotulo('t60', '60 cm', [27.3, 0.60, -10.6], 'regua');
+    rotulo('celeste', 'Dona Celeste', [20.6, 2.05, -5.75]);
+    rotulo('pipoca', 'Pipoca', [21.3, 0.95, -6.1]);
+    rotulo('valdir', 'Seu Valdir', [0.7, 2.05, -5.75]);
+  }
+  function rotulos(lista) {
+    Object.keys(ROT).forEach(function (k) { ROT[k].div.style.display = 'none'; });
+    rotulosAtivos = (lista || []).map(function (k) { return ROT[k]; }).filter(Boolean);
+  }
+
+  // ---------------------------------------------------------------- estados da cena
+  function obj(id) { var e = document.getElementById(id); return e && e.object3D; }
+  function mostrar(id, sim) { var o = obj(id); if (o) o.visible = !!sim; }
+  var estado = { luz: 0, neblina: 0 };
+  function aplicarCeu() {
+    var s = cenaEl.object3D;
+    var c = misturar('#93A4B6', '#26364D', estado.luz);
+    var c2 = c.clone().lerp(new THREE.Color('#B9C3CC'), estado.neblina * 0.5);
+    s.background = c2;
+    var perto = 22 - estado.neblina * 16, longe = 110 - estado.neblina * 70;
+    if (!s.fog) s.fog = new THREE.Fog(c2, perto, longe);
+    s.fog.color.copy(c2); s.fog.near = perto; s.fog.far = longe;
+  }
+  function luz(t) {
+    estado.luz = t;
+    aplicarCeu();
+    var sol = document.getElementById('luz_sol'), ceu = document.getElementById('luz_ceu'), amb = document.getElementById('luz_amb');
+    if (sol && sol.getObject3D('light')) sol.getObject3D('light').intensity = 1.5 - 1.05 * t;
+    if (ceu && ceu.getObject3D('light')) ceu.getObject3D('light').intensity = 1.7 - 0.8 * t;
+    if (amb && amb.getObject3D('light')) amb.getObject3D('light').intensity = 0.55 - 0.15 * t;
+  }
+  function neblina(t) { estado.neblina = t; aplicarCeu(); }
+  function chuva(i) {
+    var ch = document.getElementById('chuva3d');
+    if (ch && ch.components.chuva) ch.components.chuva.ativas = Math.round(ch.components.chuva.data.n * Math.max(0, Math.min(1, i)));
+    var css = document.getElementById('chuva-css');
+    if (css) css.style.opacity = String(Math.max(0, Math.min(1, i)) * (REDUZIR ? 0.4 : 0.9));
+  }
+  function nivelY(id, y, dur) { var o = obj(id); if (o) { o.visible = true; animar(o.position, 'y', y, dur || 1200); } }
+  function corrego(y, dur) { nivelY('agua_corrego', y, dur); }
+  // profundidade em metros sobre a via (0 = seca)
+  function travessia(prof, dur) {
+    var o = obj('agua_travessia'); if (!o) return;
+    if (prof <= 0) { animar(o.position, 'y', -0.2, dur || 800, function () { o.visible = false; }); return; }
+    nivelY('agua_travessia', prof, dur);
+  }
+  function ruaAlagada(prof, dur) {
+    var o = obj('agua_rua'); if (!o) return;
+    if (prof <= 0) { animar(o.position, 'y', -0.2, dur || 800, function () { o.visible = false; }); return; }
+    nivelY('agua_rua', prof, dur);
+  }
+  function sarjeta(t, dur) {
+    var o = obj('agua_sarjeta'), l = document.getElementById('lamina_cima');
+    if (o) { o.visible = t > 0; animar(o.position, 'y', t > 0 ? 2.56 : 2.0, dur || 900); }
+    if (l) {
+      var m = l.getObject3D('mesh');
+      if (m) animar(m.material, 'opacity', t > 0.5 ? 0.55 : 0.0, dur || 900);
+    }
+  }
+  function comitivaEm(pos, rotY, dur) {
+    var o = obj('comitiva'); if (!o) return;
+    o.visible = true;
+    var p = v3(pos[0], pos[1], pos[2]);
+    if (dur) animar(o, 'position', p, dur); else o.position.copy(p);
+    if (rotY !== undefined) o.rotation.y = THREE.MathUtils.degToRad(rotY);
+  }
+  function arrastar(sim) {
+    var lider = obj('agente_lider'); if (!lider) return;
+    if (!sim) { lider.position.set(0, 0, -0.2); lider.rotation.set(0, 0, 0); return; }
+    // o agente entra na água em movimento, perde o pé e é levado pela correnteza
+    // (eixos locais da comitiva: -z = leste, para dentro da travessia; -x = norte, rio abaixo, para o córrego)
+    animar(lider, 'position', v3(-0.4, -0.02, -2.2), 900, function () {
+      animar(lider.rotation, 'z', 1.45, 450);
+      animar(lider, 'position', v3(-6.2, -0.3, -2.9), 2600);
+    });
+  }
+  // erro crítico na Rua de Cima: o agente da frente pisa em falso sem ver o chão, cai e escorrega na correnteza da sarjeta
+  function cair(sim) {
+    var lider = obj('agente_lider'); if (!lider) return;
+    if (!sim) { lider.position.set(0, 0, -0.2); lider.rotation.set(0, 0, 0); return; }
+    animar(lider, 'position', v3(-0.1, -0.02, -1.0), 700, function () {
+      animar(lider.rotation, 'z', 1.45, 420);
+      animar(lider, 'position', v3(-0.8, -0.22, -2.3), 1500);
+    });
+  }
+  // dupla de agentes: na triagem (posição original) ou de volta à zona quente (erro crítico no Ponto Seco)
+  var DUPLA0 = { p: [1.9, 0.15, -7.6], r: 200 };
+  function duplaEm(pos, rotY) {
+    var o = obj('dupla'); if (!o) return;
+    var p = pos || DUPLA0.p, r = pos ? rotY : DUPLA0.r;
+    o.position.set(p[0], p[1], p[2]);
+    if (r !== undefined) o.rotation.y = THREE.MathUtils.degToRad(r);
+    if (pos) { o.visible = true; mostrar('cadeira', false); }
+  }
+  function regraDoFlash() {
+    var f = document.getElementById('flash'); if (!f) return;
+    f.style.opacity = '0.45'; setTimeout(function () { f.style.opacity = '0'; }, 280);
+  }
+  function pronto(cb) {
+    if (cenaEl.hasLoaded) cb(); else cenaEl.addEventListener('loaded', cb, { once: true });
+  }
+  cenaEl.addEventListener('enter-vr', function () { vista(vistaAtual, 0); });
+  cenaEl.addEventListener('exit-vr', function () { vista(vistaAtual, 0); });
+
+  window.CENA = {
+    montar: montar, vista: vista, luz: luz, neblina: neblina, chuva: chuva, corrego: corrego,
+    travessia: travessia, ruaAlagada: ruaAlagada, sarjeta: sarjeta, comitivaEm: comitivaEm,
+    mostrar: mostrar, rotulos: rotulos, arrastar: arrastar, cair: cair, duplaEm: duplaEm, flash: regraDoFlash, pronto: pronto, VISTAS: VISTAS
+  };
+  montar();
+})();
+
+</script>
+<script>
+/* jogo.js — Chão à Vista: a última casa da rua.
+   Fases (DADOS.json, jogo.fases): 0 Briefing e APR (P2) · 1 Alerta (P1) · 2 Triagem (P2) · 3 Rota (P1)
+   · 4 Ponto seco (P2) · 5 Debriefing (P1). Toda fase tem uma decisão de SST pontuada.
+   Textos e números de regra vêm de window.DADOS_JOGO (extraído de DADOS.json no build);
+   valores de design do jogo (hipotéticos) vêm de window.PARAMS_JOGO (jogo_parametros.json).
+   Regras de erro (D3, DADOS.json jogo.especificacao_d3, 18/11/2026):
+   - erros críticos (game over explicativo que cita a regra; a fase recomeça): SEGUE na travessia baixa,
+     SEGUE na Rua de Cima, mandar a dupla voltar à zona quente no Alerta máximo;
+   - erros de SST (contam no debriefing e no CSV, sem game over): sair sozinho / sem dupla; seguir de porta em porta
+     ou rumo à travessia depois de T+35 (Alerta máximo), com o cartão do Alerta máximo;
+   - medalhas: Pé no seco só com zero erro crítico; Dá meia-volta só com NÃO ENTRA na travessia;
+     Ninguém fica para trás só com as duas decisões de triagem corretas. */
+(function () {
+  'use strict';
+  var D = window.DADOS_JOGO, PR = window.PARAMS_JOGO, IC = window.ICONES, BUILD = window.BUILD || {};
+  var J = D.jogo, RC = D.regra_central, ESC = D.escada, ROT = D.rotulos;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var app = $('#app'), painel = $('#painel'), sobre = $('#sobre'), topo = $('#topo'), legendaEl = $('#legenda');
+
+  // ---------------------------------------------------------------- parâmetros de URL
+  var qs = new URLSearchParams(location.search);
+  var hash = (location.hash || '').replace('#', '');
+  var DEMO = qs.get('demo') === '1' || hash === 'demo' || hash === 'demo-completa';
+  var DEMO_COMPLETA = hash === 'demo-completa' || qs.get('completa') === '1';
+  var FOTO = qs.get('cena');
+  var SEM_UI = qs.get('ui') === '0';
+  var VEL = Math.max(0.25, Math.min(4, parseFloat(qs.get('vel')) || 1));
+  if (SEM_UI) document.documentElement.classList.add('sem-ui');
+
+  // ---------------------------------------------------------------- utilidades
+  function ic(n, cls) { return '<svg class="ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || '') + '</svg>'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function br(n, casas) { return Number(n).toFixed(casas || 0).replace('.', ','); }
+  function espera(ms) { return new Promise(function (r) { setTimeout(r, ms / VEL); }); }
+  function agora() { return performance.now(); }
+  function idAleatorio() {
+    var a = new Uint8Array(6);
+    try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < 6; i++) a[i] = Math.random() * 256; }
+    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  function dataHora() {
+    var d = new Date(), z = -d.getTimezoneOffset(), s = z >= 0 ? '+' : '-', p = function (n) { return ('0' + Math.floor(Math.abs(n))).slice(-2); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + s + p(z / 60) + ':' + p(z % 60);
+  }
+  function marco(nome) { (window.__marcos = window.__marcos || []).push({ nome: nome, t: Date.now() }); }
+  var esc3 = {}; RC.escala_3_cores.forEach(function (e) { esc3[e.cor] = e; });
+  var nivelPorNome = {}; ESC.forEach(function (e) { nivelPorNome[e.nivel] = e; });
+  var celeste = D.personagens.filter(function (p) { return p.id === 'celeste'; })[0];
+  var valdir = D.personagens.filter(function (p) { return p.id === 'valdir'; })[0];
+  var nws = RC.nws_fema;
+
+  // linha do tempo hipotética do cenário ("T−3 h", "T+15 min"...) convertida em minutos
+  var LINHA = D.cenario.linha_do_tempo_hipotetica.map(function (x) {
+    var m = x.t.replace('−', '-').match(/T\s*([+-])\s*(\d+)\s*(h|min)?/);
+    var v = m ? parseInt(m[2], 10) * (m[3] === 'h' ? 60 : 1) * (m[1] === '-' ? -1 : 1) : 0;
+    return { min: v, t: x.t, evento: x.evento, nivel: x.nivel };
+  });
+  var MIN_ALERTA = (LINHA.filter(function (x) { return x.nivel === 'Alerta'; })[0] || { min: 15 }).min;
+  var D3 = J.especificacao_d3 || {};
+  var MIN_MAXIMO = D3.alerta_maximo_min || (LINHA.filter(function (x) { return x.nivel === 'Alerta máximo'; })[0] || { min: 35 }).min;
+  var EV_MAXIMO = LINHA.filter(function (x) { return x.nivel === 'Alerta máximo'; })[0] || { t: 'T+' + MIN_MAXIMO + ' min', evento: '' };
+  var CARTAO_T35 = ((D3.erros_sst_regras || []).filter(function (r) { return r.id === 'alerta_maximo_t35'; })[0] || {}).cartao ||
+    'Alerta máximo: na operação real a equipe já estaria se retirando. Continue para treinar, mas isto conta como erro de SST.';
+  var TITULO_ERRO = D3.titulo_debriefing_com_erro || 'Missão concluída com N decisões de SST erradas';
+  function nivelNoMin(m) { return m >= MIN_MAXIMO ? 'Alerta máximo' : (m >= MIN_ALERTA ? 'Alerta' : 'Sobreaviso'); }
+  function yCorrego(m) {
+    var t = PR.nivel_corrego_y;
+    if (m <= t[0].min) return t[0].y;
+    for (var i = 1; i < t.length; i++) if (m <= t[i].min) { var k = (m - t[i - 1].min) / (t[i].min - t[i - 1].min); return t[i - 1].y + k * (t[i].y - t[i - 1].y); }
+    return t[t.length - 1].y;
+  }
+  function faixaDoY(y) { var f = PR.faixas_regua_corrego; for (var i = f.length - 1; i >= 0; i--) if (y >= f[i].de) return f[i]; return f[0]; }
+
+  // ---------------------------------------------------------------- estado da partida
+  var S;
+  function novoEstado(modo) {
+    S = {
+      sessao: idAleatorio(), modo: modo, inicio: agora(), pontos: 0, eventos: [], erros: 0, sstOk: 0, sstTot: 0,
+      tAlerta0: null, tDecisao: null, minDecisao: null, rota: '', gameOver: '', gameOvers: [], tardio: false, forcado: false,
+      pipocaJunto: true, meiaVolta: false, contagemOk: false, nivel: '', relogio: '', fase: null, pct: null,
+      errosSst: 0, triagem: { valdir: null, recusa: null }, t35: {}, minAtual: 0
+    };
+  }
+  // tipo: '' (decisão comum) | 'critico' (erro crítico, game over) | 'sst' (erro de SST, sem game over)
+  function registrar(fase, decisao, correta, pts, texto, tipo) {
+    S.eventos.push({ data_hora: dataHora(), fase: fase, decisao: decisao, correta: !!correta, texto: texto || decisao, tipo: tipo || '' });
+    S.sstTot++;
+    if (tipo === 'critico') S.erros++;
+    if (tipo === 'sst') S.errosSst++;
+    if (correta) { S.sstOk++; S.pontos += (pts === undefined ? J.pontuacao_proposta.por_decisao_sst_correta : pts); }
+    hud();
+  }
+  function gameOverMotivo(txt) { S.gameOvers.push(txt); S.gameOver = S.gameOvers.join(' | '); }
+
+  // ---------------------------------------------------------------- HUD (topo)
+  var FASES = J.fases;
+  function fasesDoModo(m) { return FASES.filter(function (f) { return m === 'completa' || f.prioridade === 'P1'; }); }
+  function hud() {
+    if (!S) return;
+    var lista = fasesDoModo(S.modo === 'demo' ? (DEMO_COMPLETA ? 'completa' : 'rapida') : S.modo);
+    var idx = lista.findIndex(function (f) { return S.fase && f.id === S.fase.id; });
+    $('#fases').innerHTML = lista.map(function (f, i) {
+      return '<span class="fase-pil' + (i === idx ? ' atual' : (i < idx ? ' feita' : '')) + '">' + esc(f.nome) + '</span>';
+    }).join('');
+    var nv = $('#hud-nivel'); nv.dataset.n = S.nivel || ''; nv.textContent = S.nivel || '';
+    $('#hud-relogio').innerHTML = S.relogio ? ic('clock') + esc(S.relogio) : '';
+    $('#hud-relogio').hidden = !S.relogio;
+    $('#hud-pontos').innerHTML = ic('award') + S.pontos + ' pts';
+  }
+  function nivel(n, relogio) { S.nivel = n; if (relogio !== undefined) S.relogio = relogio; hud(); }
+
+  // ---------------------------------------------------------------- legenda do modo demonstração
+  var SEM_LEGENDA = qs.get('legenda') === '0';
+  function legenda(quem, oque) {
+    if (!DEMO || SEM_LEGENDA) return;
+    legendaEl.hidden = false;
+    legendaEl.innerHTML = '<span class="quem">' + esc(quem) + '</span><span class="oque">' + esc(oque) + '</span>';
+  }
+  var QUEM = 'Modo demonstração · quem joga: agente de evacuação (simulado)';
+
+  // ---------------------------------------------------------------- painel de decisão
+  function escalaHTML() {
+    return '<div class="escala" aria-label="Escala de 3 cores">' + ['verde', 'amarelo', 'vermelho'].map(function (c) {
+      var e = esc3[c], icn = e.icone === 'x' ? 'x' : e.icone;
+      return '<div class="cor-' + c + '"><b>' + ic(icn) + esc(e.palavra) + '</b>' + esc(e.criterio) + '</div>';
+    }).join('') + '</div>';
+  }
+  function leituraHTML(t) {
+    return '<div class="cartao"><div class="vechao">' + ic('eye') + esc(D.marca.pergunta_bordao) + ' Leia a água antes de decidir</div>' +
+      '<dl class="leitura">' +
+      '<div><dt>' + ic('waves') + 'Profundidade</dt><dd class="agua">' + esc(t.profundidade) + '</dd></div>' +
+      '<div><dt>' + ic('arrow-right') + 'Correnteza</dt><dd class="agua">' + esc(t.correnteza) + '</dd></div>' +
+      '<div><dt>' + ic('eye') + 'Chão</dt><dd>' + esc(t.chao) + '</dd></div>' +
+      '<div><dt>' + ic('cloud-rain') + 'Chuva</dt><dd>' + esc(t.chuva) + '</dd></div>' +
+      '</dl></div>';
+  }
+  var resolverAtual = null;
+  function escolher(def) {
+    marco('decisao:' + def.chave);
+    var html = '<div class="eyebrow">' + esc(def.eyebrow) + (def.tag ? '<span class="tag">' + esc(def.tag) + '</span>' : '') + '</div>' +
+      '<h2>' + esc(def.titulo) + '</h2>' +
+      (def.situacao ? '<p class="situacao">' + def.situacao + '</p>' : '') +
+      (def.extra || '') +
+      '<p class="pergunta">' + ic(def.agua ? 'eye' : 'shield-check') + '<span>' + esc(def.pergunta) + '</span></p>' +
+      '<div class="opcoes" role="group" aria-label="Opções">' + def.opcoes.map(function (o, i) {
+        if (def.agua) {
+          var e = esc3[o.cor];
+          return '<button class="op agua" data-i="' + i + '"><span class="letra cor-' + o.cor + '">' + ic(e.icone) + esc(e.palavra) + '</span><span class="txt">' + esc(o.txt) + '</span></button>';
+        }
+        return '<button class="op" data-i="' + i + '"><span class="letra">' + 'ABC'[i] + '<small>' + (i + 1) + '</small></span><span class="txt">' + esc(o.txt) + '</span></button>';
+      }).join('') + '</div>' +
+      (def.agua ? escalaHTML() : '') +
+      (def.nota ? '<p class="nota">' + esc(def.nota) + '</p>' : '');
+    painel.innerHTML = html;
+    painel.scrollTop = 0;
+    return new Promise(function (resolve) {
+      var feito = false;
+      function pegar(i) {
+        if (feito) return; feito = true; resolverAtual = null;
+        var bts = painel.querySelectorAll('.op');
+        bts.forEach(function (b, k) { b.disabled = true; if (k === i) b.classList.add('escolhida'); });
+        resolve(def.opcoes[i]);
+      }
+      painel.querySelectorAll('.op').forEach(function (b) { b.addEventListener('click', function () { pegar(+b.dataset.i); }); });
+      resolverAtual = pegar;
+      if (DEMO) {
+        var alvo = def.opcoes.findIndex(function (o) { return o.id === def.demo; });
+        if (alvo < 0) alvo = 0;
+        espera(PR.demo.leitura_ms).then(function () {
+          var b = painel.querySelectorAll('.op')[alvo];
+          if (b) { b.classList.add('toque'); b.focus({ preventScroll: true }); }
+          return espera(450);
+        }).then(function () { pegar(alvo); });
+      }
+    });
+  }
+  function feedback(tipo, titulo, corpo, base, pts, rotuloBtn) {
+    var cls = tipo === 'ok' ? 'ok' : (tipo === 'meio' ? 'meio' : 'nao');
+    var icone = tipo === 'ok' ? 'check' : (tipo === 'meio' ? 'triangle-alert' : 'x');
+    var div = document.createElement('div');
+    div.className = 'fb ' + cls;
+    div.setAttribute('role', 'status');
+    div.innerHTML = '<div class="cab">' + ic(icone) + '<span>' + esc(titulo) + '</span>' + (pts ? '<span class="pts">+' + pts + ' pts</span>' : '') + '</div>' +
+      '<div class="corpo"><p>' + corpo + '</p>' + (base ? '<p class="base">' + esc(base) + '</p>' : '') +
+      '<button class="btn grande" id="btn-continuar">' + ic('arrow-right') + esc(rotuloBtn || 'Continuar') + '</button></div>';
+    var opc = painel.querySelector('.opcoes');
+    if (opc && opc.nextSibling) painel.insertBefore(div, opc.nextSibling); else painel.appendChild(div);
+    // rola só o painel (scrollIntoView também rolaria o #app, que tem overflow oculto, e desalinharia os toques)
+    requestAnimationFrame(function () {
+      var alvo = Math.max(0, div.offsetTop - 12);
+      if (div.offsetTop + div.offsetHeight > painel.scrollTop + painel.clientHeight || div.offsetTop < painel.scrollTop) painel.scrollTo({ top: alvo, behavior: 'smooth' });
+    });
+    return new Promise(function (resolve) {
+      var b = div.querySelector('#btn-continuar'), feito = false;
+      function ir() { if (feito) return; feito = true; resolverAtual = null; resolve(); }
+      b.addEventListener('click', ir);
+      resolverAtual = ir;
+      if (!DEMO) b.focus({ preventScroll: true });
+      if (DEMO) espera(PR.demo.feedback_ms).then(ir);
+    });
+  }
+  document.addEventListener('keydown', function (ev) {
+    if (!resolverAtual || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    if (/^[1-3]$/.test(ev.key) && painel.querySelector('.op:not([disabled])')) { resolverAtual(+ev.key - 1); ev.preventDefault(); }
+  });
+
+  // decisão padrão de 3 alternativas, com pontuação e feedback
+  // op.critico = erro crítico (quem chama mostra o game over e refaz a fase); op.sst = erro de SST (rótulo curto)
+  async function decisaoSST(fase, def) {
+    var op = await escolher(def);
+    var pts = op.correta ? J.pontuacao_proposta.por_decisao_sst_correta : 0;
+    var tipo = op.critico ? 'critico' : (op.sst ? 'sst' : '');
+    var marcaCsv = op.critico ? ' (ERRO CRÍTICO)' : (op.sst ? ' (ERRO DE SST: ' + op.sst + ')' : '');
+    var pre = op.critico ? 'Erro crítico · ' : (op.sst ? 'Erro de SST (' + op.sst + ') · ' : '');
+    registrar(fase.nome, def.chave + ':' + op.id + marcaCsv, op.correta, undefined, pre + def.titulo + ': ' + op.txt, tipo);
+    if (def.depois) def.depois(op);
+    if (op.critico) return op;
+    if (def.legendaFb) legenda(QUEM, def.legendaFb(op));
+    await feedback(op.correta ? 'ok' : (op.tipo || 'nao'), op.correta ? 'Correto' : (op.titulo || (op.sst ? 'Erro de SST' : 'Atenção')), op.fb, op.base, pts);
+    return op;
+  }
+
+  // cartão do Alerta máximo (erro de SST, sem game over): seguir na zona quente depois de T+35. Conta uma vez por situação.
+  async function cartaoAlertaMaximo(f, tipo, m, onde, oque) {
+    if (m < MIN_MAXIMO || S.t35[tipo]) return;
+    S.t35[tipo] = true;
+    marco('cartao_t35:' + tipo);
+    registrar(f.nome, 'alerta_maximo_t35:' + tipo + ' (ERRO DE SST)', false, 0,
+      'Erro de SST · Alerta máximo (T+' + m + ' min): ' + oque, 'sst');
+    nivel('Alerta máximo', 'T+' + m + ' min');
+    var eM = nivelPorNome['Alerta máximo'];
+    painel.innerHTML = '<div class="eyebrow">Fase ' + f.id + ' · ' + esc(f.nome) + '<span class="tag">erro de SST · sem game over</span></div>' +
+      '<h2>Alerta máximo · T+' + m + ' min</h2>' +
+      '<p class="situacao">' + onde + ' <strong>' + esc(EV_MAXIMO.t) + ':</strong> ' + esc(EV_MAXIMO.evento) + '.</p>' +
+      '<div class="fb nao t35" role="status"><div class="cab">' + ic('siren') + '<span>Erro de SST · Alerta máximo</span></div>' +
+      '<div class="corpo"><p class="cartao-t35">' + esc(CARTAO_T35) + '</p>' +
+      '<p>Na escada, o Alerta máximo pede à equipe: <strong>' + esc(eM.acao_sst_equipe) + '</strong></p>' +
+      '<p class="base">Decidir a evacuação até T+' + PR.decisao_no_prazo_ate_min + ' min dá tempo de terminar a rua antes do Alerta máximo. ' + esc(ROT.escada) + '.</p>' +
+      '<button class="btn grande" id="btn-continuar">' + ic('arrow-right') + 'Continuar para treinar</button></div></div>';
+    painel.scrollTop = 0;
+    await new Promise(function (resolve) {
+      var b = $('#btn-continuar'), feito = false;
+      function ir() { if (feito) return; feito = true; resolverAtual = null; resolve(); }
+      b.addEventListener('click', ir);
+      resolverAtual = ir;
+      if (!DEMO) b.focus({ preventScroll: true });
+      if (DEMO) espera(PR.demo.feedback_ms * 1.5).then(ir);
+    });
+  }
+
+  // ---------------------------------------------------------------- telas cheias
+  function abrirSobre(html, classe) {
+    sobre.className = classe || '';
+    sobre.innerHTML = html;
+    sobre.hidden = false;
+    sobre.scrollTop = 0;
+  }
+  function fecharSobre() { sobre.hidden = true; sobre.innerHTML = ''; }
+  function rotulosHTML() {
+    return '<div class="rotulos">' +
+      '<span>' + esc(ROT.personagem) + ': ' + esc(celeste.nome) + ', ' + esc(valdir.nome) + '</span>' +
+      '<span>' + esc(ROT.bairro) + ' (' + esc(D.cenario.bairro) + ')</span>' +
+      '<span>' + esc(ROT.chuva) + '</span>' +
+      '<span>' + esc(D.cenario.rotulo_linha_do_tempo) + '</span>' +
+      '<span class="xr">' + ic('glasses') + ' ' + esc(ROT.xr) + '</span>' +
+      '</div>';
+  }
+
+  // créditos com a identificação completa da seção 2 do plano (DADOS.json, identificacao)
+  function creditosHTML() {
+    var I = D.identificacao;
+    return '<p class="rodape-rot creditos">' + [I.instituicao, I.faculdade, I.departamento, I.disciplina, I.trabalho, I.professor_tratamento,
+      'Grupo: ' + I.grupo.join(', '), I.cidade + ', ' + I.ano].map(esc).join(' · ') + '.</p>' +
+      '<p class="rodape-rot">Feito com A-Frame ' + esc(BUILD.aframe || '') + ' (MIT) e ícones Lucide (ISC); cena só com formas geométricas, sem modelos nem imagens externas.</p>';
+  }
+
+  function telaAbertura() {
+    S = null;
+    legendaEl.hidden = true;
+    painel.innerHTML = '';
+    CENA.vista('geral', 0); CENA.luz(0.12); CENA.chuva(0.55); CENA.corrego(-0.85, 10); CENA.travessia(0); CENA.ruaAlagada(0); CENA.sarjeta(0); CENA.neblina(0);
+    CENA.mostrar('comitiva', false); CENA.mostrar('dupla', false); CENA.mostrar('moradores_ps', false); CENA.mostrar('equipe', true);
+    CENA.mostrar('celeste_casa', true); CENA.mostrar('pipoca_casa', true); CENA.mostrar('valdir_casa', true);
+    CENA.rotulos(['corrego', 'rua_corrego', 'rua_cima', 'casa_celeste', 'travessia', 'ponto_seco']);
+    $('#hud-nivel').dataset.n = ''; $('#hud-relogio').hidden = true; $('#hud-pontos').innerHTML = ''; $('#fases').innerHTML = '';
+    abrirSobre(
+      '<div class="folha abertura"><div class="folha" style="margin:0">' +
+      '<div class="eyebrow">' + ic('footprints') + ' Protótipo jogável do curso ' + esc(D.marca.nome) + '</div>' +
+      '<h1 class="titulo-jogo">' + ic('footprints') + esc(D.marca.nome) + '</h1>' +
+      '<p class="subtitulo">' + esc(J.nome.replace(D.marca.nome + ': ', '')) + '</p>' +
+      '<p class="slogan">' + ic('eye') + esc(D.marca.slogan) + '</p>' +
+      '<p class="apoio">Você é agente de evacuação de uma equipe de proteção e defesa civil. A chuva aperta na ' + esc(D.cenario.bairro) +
+      ' e a ' + esc(celeste.nome) + ' mora na última casa da rua do ' + esc(D.cenario.corrego.replace('Córrego ', 'córrego ')) + '. Leve a população ao Ponto Seco. ' +
+      '<strong>' + esc(D.marca.linha_de_apoio) + '</strong></p>' +
+      '<div class="modos">' +
+      '<button class="modo prim" id="b-completa"><b>' + ic('play') + 'Missão completa</b><span>Cerca de 3 min · briefing, alerta, triagem, rota, ponto seco e debriefing</span></button>' +
+      '<button class="modo" id="b-rapida"><b>' + ic('timer') + 'Missão rápida</b><span>Cerca de 2 min · alerta, rota e debriefing</span></button>' +
+      '</div>' +
+      '<div class="links-ab"><button class="btn sec" id="b-demo">' + ic('skip-forward') + 'Ver demonstração (1 min)</button>' +
+      '<button class="btn sec" id="btn-vr" hidden>' + ic('glasses') + 'Entrar em VR</button></div>' +
+      rotulosHTML() +
+      creditosHTML() +
+      '</div></div>');
+    $('#b-completa').onclick = function () { preTreino('completa'); };
+    $('#b-rapida').onclick = function () { preTreino('rapida'); };
+    $('#b-demo').onclick = function () { iniciarDemo(false); };
+    configurarVR();
+    marco('abertura');
+  }
+
+  function preTreino(modo) {
+    abrirSobre(
+      '<div class="folha">' +
+      '<div class="eyebrow">' + ic('info') + ' Antes de jogar · 30 segundos <span class="tag">pode pular</span></div>' +
+      '<h2>Três coisas para levar para a rua</h2>' +
+      '<div class="cards3">' +
+      '<div class="cartao"><h3>' + ic('eye') + 'A escala de 3 cores</h3>' + escalaHTML() + '<p class="nota">Toda decisão sobre água usa esta escala. A cor sempre vem com palavra e ícone.</p></div>' +
+      '<div class="cartao"><h3>' + ic('waves') + 'A régua da água</h3><div class="regua-mini">' + nws.map(function (n) {
+        return '<div><b>~' + n.altura_aprox_cm + ' cm</b><span>de água em movimento ' + esc(n.efeito.replace('água em movimento ', '')) + '</span></div>';
+      }).join('') + '</div><p class="nota">' + esc(RC.nws_ressalva) + '</p></div>' +
+      '<div class="cartao"><h3>' + ic('shield-check') + 'A equipe também se protege</h3><div class="regua-mini">' + ESC.map(function (e) {
+        return '<div><span class="nv ' + e.nivel.replace(' máximo', '-maximo') + '">' + esc(e.nivel) + '</span><span>' + esc(e.acao_sst_equipe) + '</span></div>';
+      }).join('') + '</div><p class="nota">' + esc(ROT.escada) + '.</p></div>' +
+      '</div>' +
+      '<div class="linha-btns"><button class="btn grande" id="b-jogar">' + ic('play') + 'Começar a missão</button>' +
+      '<button class="btn sec grande" id="b-pular">' + ic('skip-forward') + 'Pular</button></div>' +
+      '</div>', 'escuro');
+    $('#b-jogar').onclick = function () { jogar(modo); };
+    $('#b-pular').onclick = function () { jogar(modo); };
+    $('#b-jogar').focus({ preventScroll: true });
+  }
+
+  // ---------------------------------------------------------------- fases
+  async function faseBriefing(f) {
+    S.fase = f; nivel('Sobreaviso', LINHA[0].t);
+    CENA.vista('base', 1600); CENA.luz(0.08); CENA.chuva(0.3); CENA.corrego(-0.92);
+    CENA.mostrar('equipe', true); CENA.rotulos(['reuniao', 'rua_cima', 'ponto_seco']);
+    legenda(QUEM, 'Briefing e APR: confere o EPI em dupla e testa os rádios antes de sair');
+    var e0 = nivelPorNome['Sobreaviso'];
+    await decisaoSST(f, {
+      chave: 'briefing', demo: roteiro('briefing'),
+      eyebrow: 'Fase 0 · ' + f.nome, tag: 'decisão de SST',
+      titulo: 'Antes de descer para a ' + D.cenario.bairro,
+      situacao: '<strong>' + esc(LINHA[0].t) + ':</strong> ' + esc(LINHA[0].evento) + '. Nível <strong>Sobreaviso</strong>. A equipe se reúne no ponto de reunião, na Rua de Cima. ' +
+        '<span class="nota">' + esc(D.fontes_de_alerta_df[0].nota) + '.</span>',
+      pergunta: 'Como a equipe se prepara para sair?',
+      opcoes: [
+        { id: 'a', correta: true, txt: 'Confere o EPI em dupla (botas e luvas impermeáveis, colete, capacete, lanterna, apito), testa os rádios e confirma a escala com descanso',
+          fb: 'No Sobreaviso, a ação de SST da equipe é: ' + esc(e0.acao_sst_equipe) + ' A dupla é obrigatória e o EPI é a última barreira da hierarquia, nunca a única.', base: 'Escada alerta → ação (' + ROT.escada + ').' },
+        { id: 'b', correta: false, sst: 'sozinho', titulo: 'Erro de SST: ninguém sai sozinho', txt: 'Cada agente sai sozinho, para cobrir mais casas em menos tempo',
+          fb: 'Ninguém sai sozinho: dupla obrigatória e controle de efetivo. Agente isolado não tem quem acione o 193 se for ele quem precisar. A coordenação refaz as duplas. Isto conta como erro de SST no debriefing.', base: 'Plano de emergência da própria equipe.' },
+        { id: 'c', correta: false, txt: 'Leva só a capa de chuva: colete e lanterna atrasam a saída',
+          fb: 'A luz vai cair durante a operação. Sem lanterna e sem colete, a equipe perde a última barreira. No Sobreaviso: ' + esc(e0.acao_sst_equipe) + ' A coordenação manda buscar o kit.' }
+      ]
+    });
+  }
+
+  async function faseAlerta(f) {
+    S.fase = f;
+    var lista = [LINHA[0]];
+    CENA.vista('corrego', 1600); CENA.luz(0.2); CENA.chuva(0.5); CENA.corrego(yCorrego(0), 600);
+    CENA.mostrar('equipe', false); CENA.rotulos(['regua_corrego', 'rua_corrego']);
+    var sPorMin = (DEMO ? PR.relogio_s_por_min_demo : PR.relogio_s_por_min) / VEL;
+    var min = 0, decidido = false, t0 = agora(), tUltimo = t0, mostradas = {};
+    S.tAlerta0 = t0;
+    legenda(QUEM, 'Missão Alerta: a régua do córrego sobe; o jogador decide quando evacuar (cronômetro)');
+    painel.innerHTML =
+      '<div class="eyebrow">Fase ' + f.id + ' · ' + esc(f.nome) + '<span class="tag">cronômetro · decisão de SST</span></div>' +
+      '<h2>Quando evacuar?</h2>' +
+      '<p class="situacao">A chuva forte começou na bacia do ' + esc(D.cenario.corrego) + '. Na cheia rápida, a decisão é em minutos. Acompanhe a régua do córrego e as mensagens.</p>' +
+      '<div class="alerta-box"><div class="regua-corrego" aria-hidden="true">' +
+      PR.faixas_regua_corrego.map(function (fx) {
+        var c = { verde: 'verde', amarela: 'amarelo', laranja: 'laranja', vermelha: 'vermelho' }[fx.nome];
+        return '<div class="fx" style="background:var(--' + c + ');flex-grow:' + (fx.ate - fx.de).toFixed(2) + '"><span style="color:' + (c === 'vermelho' || c === 'verde' ? '#fff' : 'var(--marinho)') + '">' + esc(fx.nome) + '</span></div>';
+      }).join('') + '<div class="nivel-agua" id="hud-agua"></div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px;min-width:0"><div class="relogio" id="rel">T+0 min<small id="rel2">tempo real: 0 s</small></div>' +
+      '<div class="chip nivel" id="nv-alerta" data-n="Sobreaviso">Sobreaviso</div>' +
+      '<p class="nota" id="faixa-txt"></p></div></div>' +
+      '<div class="linha-btns"><button class="btn grande" id="b-evacuar">' + ic('siren') + 'Iniciar a evacuação agora</button>' +
+      '<button class="btn sec" id="b-aguardar">' + ic('pause') + 'Aguardar mais ' + PR.aguardar_avanca_min + ' min</button></div>' +
+      '<div class="feed" id="feed" aria-live="polite"></div>' +
+      '<p class="nota">' + esc(D.cenario.rotulo_linha_do_tempo) + ' Mensagens fictícias do cenário (simulação).</p>';
+    var feed = $('#feed');
+    function msg(nv, t, texto) {
+      var d = document.createElement('div');
+      d.className = 'msg nova'; d.dataset.n = nv;
+      d.innerHTML = '<b>' + esc(t) + '</b> · ' + texto;
+      feed.insertBefore(d, feed.firstChild);
+    }
+    msg('Sobreaviso', LINHA[0].t, esc(LINHA[0].evento) + ' (INMET emite avisos; a Defesa Civil emite alertas).');
+    msg('Sobreaviso', 'T+0', esc(LINHA[1] ? LINHA[1].evento : 'chuva forte'));
+    mostradas[0] = mostradas[1] = true;
+    var cb = D.fontes_de_alerta_df[1];
+    var resolverDecisao;
+    var promessa = new Promise(function (r) { resolverDecisao = r; });
+    function atualizar() {
+      var y = yCorrego(min), fx = faixaDoY(y), nv = nivelNoMin(min);
+      $('#rel').firstChild.nodeValue = 'T+' + Math.floor(min) + ' min';
+      $('#rel2').textContent = 'tempo real: ' + br((agora() - t0) / 1000, 0) + ' s';
+      var el = $('#nv-alerta'); el.dataset.n = nv; el.textContent = nv;
+      $('#hud-agua').style.height = Math.max(0, Math.min(100, (y + 1.2) / 1.8 * 100)).toFixed(1) + '%';
+      $('#faixa-txt').textContent = 'Régua do córrego na faixa ' + fx.nome + ' (faixas hipotéticas do cenário).';
+      nivel(nv, 'T+' + Math.floor(min) + ' min');
+      CENA.corrego(y, 250);
+      CENA.chuva(0.5 + 0.45 * Math.min(1, min / MIN_MAXIMO));
+      CENA.luz(0.2 + 0.25 * Math.min(1, min / MIN_MAXIMO));
+      LINHA.forEach(function (x, i) {
+        if (!mostradas[i] && x.min >= 0 && min >= x.min && x.min <= MIN_MAXIMO) {
+          mostradas[i] = true;
+          msg(x.nivel, x.t, esc(x.evento) + (x.nivel === 'Alerta' ? '.' : ''));
+          if (x.nivel === 'Alerta') msg('Alerta', x.t, 'O celular da ' + esc(celeste.nome) + ' é antigo (anterior a 2020): ela não recebe o cell broadcast. Alguém precisa bater à porta.');
+        }
+      });
+    }
+    var timer = setInterval(function () {
+      if (decidido) return;
+      var t = agora();
+      if (!document.hidden && !document.querySelector('a-scene').is('vr-mode')) min += (t - tUltimo) / 1000 / sPorMin;
+      tUltimo = t;
+      if (min >= PR.decisao_forcada_min) { min = PR.decisao_forcada_min; atualizar(); decidir(true); return; }
+      atualizar();
+      if (DEMO && min >= PR.demo.decide_evacuar_no_min) decidir(false);
+    }, 100);
+    function decidir(forcado) {
+      if (decidido) return; decidido = true; clearInterval(timer);
+      painel.querySelectorAll('.btn').forEach(function (b) { b.disabled = true; });
+      resolverDecisao(forcado);
+    }
+    $('#b-evacuar').onclick = function () { decidir(false); };
+    $('#b-aguardar').onclick = function () { min = Math.min(PR.decisao_forcada_min, min + PR.aguardar_avanca_min); atualizar(); };
+    resolverAtual = null;
+    atualizar();
+    var forcado = await promessa;
+    S.tDecisao = agora(); S.minDecisao = Math.floor(min); S.forcado = forcado;
+    var seg = (S.tDecisao - t0) / 1000;
+    var nvDec = nivelNoMin(min);
+    var noPrazo = !forcado && min <= PR.decisao_no_prazo_ate_min;
+    S.tardio = !noPrazo;
+    registrar(f.nome, 'iniciar_evacuacao (T+' + S.minDecisao + ' min' + (forcado ? ', ordem da coordenação' : '') + ')', noPrazo, undefined,
+      'Quando evacuar: ' + (forcado ? 'ordem da coordenação' : 'evacuação iniciada') + ' em T+' + S.minDecisao + ' min (' + nivelNoMin(min) + ')');
+    legenda(QUEM, 'Decide: iniciar a evacuação em T+' + S.minDecisao + ' min (nível ' + nvDec + ')');
+    var eA = nivelPorNome['Alerta'];
+    painel.innerHTML = '<div class="eyebrow">Fase ' + f.id + ' · ' + esc(f.nome) + '<span class="tag">cronômetro · decisão de SST</span></div>' +
+      '<h2>' + (forcado ? 'A coordenação deu a ordem' : 'Evacuação iniciada') + ' em T+' + S.minDecisao + ' min</h2>' +
+      '<p class="situacao">Nível <strong>' + esc(nvDec) + '</strong> · régua do córrego na faixa ' + esc(faixaDoY(yCorrego(min)).nome) + ' · tempo real até a decisão: <strong>' + br(seg, 1) + ' s</strong>.</p>';
+    painel.scrollTop = 0;
+    var txt;
+    if (forcado) txt = 'A coordenação deu a ordem por você em T+' + S.minDecisao + ' min. A régua já tinha passado da faixa laranja: a família da casa 2 (hipotética) não será alcançada a tempo e o 193 é acionado para ela.';
+    else if (noPrazo && min < MIN_ALERTA) txt = 'Você decidiu antes do nível Alerta. Na cheia rápida, evacuar cedo elimina a exposição: é o primeiro nível da hierarquia de controle (eliminação).';
+    else if (noPrazo) txt = 'Decisão no gatilho do nível Alerta (' + esc(eA.gatilho_exemplo) + '): ' + esc(eA.acao_populacao);
+    else txt = 'Tarde: a régua passou da faixa laranja há ' + (S.minDecisao - MIN_ALERTA) + ' min. Na cheia rápida a decisão é em minutos; a família da casa 2 (hipotética) não será alcançada a tempo e o 193 é acionado para ela.';
+    await feedback(noPrazo ? 'ok' : 'nao', noPrazo ? 'Evacuação iniciada a tempo' : 'Evacuação tardia', txt + ' <strong>Tempo até a decisão: ' + br(seg, 1) + ' s.</strong>',
+      'Métrica: ' + J.metricas[0].descricao + ' (' + (J.metricas[0].fonte || '') + ').', noPrazo ? J.pontuacao_proposta.por_decisao_sst_correta : 0);
+    // decisão de SST que acompanha a ordem de evacuar
+    nivel(nvDec);
+    await decisaoSST(f, {
+      chave: 'alerta_sst', demo: roteiro('alerta_sst'),
+      eyebrow: 'Fase ' + f.id + ' · ' + f.nome, tag: 'decisão de SST',
+      titulo: 'A ordem de evacuar saiu',
+      situacao: 'Nível <strong>' + esc(nvDec) + '</strong>. A equipe vai descer para a Rua do Córrego.',
+      pergunta: 'O que segue junto com a ordem, para a segurança da equipe?',
+      legendaFb: function (op) { return op.correta ? 'Decide (SST): briefing de segurança, duplas e controle de efetivo aberto' : 'Escolha errada de SST: a equipe sairia sem proteção'; },
+      opcoes: [
+        { id: 'a', correta: true, txt: 'Briefing de segurança e APR rápida, duplas formadas, função de segurança designada e controle de efetivo aberto',
+          fb: 'No Alerta, a ação de SST é: ' + esc(eA.acao_sst_equipe) + ' A função de segurança tem autoridade para interromper atividade insegura.' },
+        { id: 'b', correta: false, txt: 'Todos descem já; o briefing fica para depois, porque o tempo é curto',
+          fb: 'Sem briefing, a equipe desce sem saber o perigo principal (água em movimento) nem o ponto de reunião. O briefing pode ser curto, mas não pode faltar.' },
+        { id: 'c', correta: false, txt: 'Cada agente usa o próprio celular para combinar a rota com quem estiver por perto',
+          fb: 'Comunicação redundante, com o rádio como meio primário: celular e energia caem. No RS, faltas de energia e de telefonia impediram alertas (ANA, 2025).' }
+      ]
+    });
+  }
+
+  async function faseTriagem(f) {
+    S.fase = f;
+    var m = (S.minDecisao || 16) + PR.tempo_cenario.triagem_apos_decisao_min;
+    S.minAtual = m;
+    nivel(nivelNoMin(m), 'T+' + m + ' min');
+    CENA.duplaEm(null);
+    CENA.vista('valdir', 1700); CENA.luz(0.45); CENA.chuva(0.75); CENA.corrego(yCorrego(m));
+    CENA.mostrar('dupla', true); CENA.mostrar('cadeira', false);
+    CENA.rotulos(['valdir', 'casa_valdir']);
+    legenda(QUEM, 'Triagem: o Seu Valdir tem mobilidade reduzida; o jogador decide o transporte');
+    var ondePorta = 'A dupla ainda bate de porta em porta na Rua do Córrego, a zona quente.';
+    await cartaoAlertaMaximo(f, 'porta_a_porta', m, ondePorta, 'continuou batendo de porta em porta na zona quente');
+    await decisaoSST(f, {
+      chave: 'valdir', demo: roteiro('valdir'),
+      eyebrow: 'Fase ' + f.id + ' · ' + f.nome, tag: 'decisão de SST · ergonomia',
+      titulo: 'Casa 3: ' + valdir.nome,
+      situacao: 'A dupla bate de porta em porta na Rua do Córrego. O casal da casa 1 sobe a pé pela Rua de Cima. <strong>' + esc(valdir.nome) + '</strong> (' + valdir.idade + ' anos, ' + esc(ROT.personagem.toLowerCase()) + ') ' + esc(valdir.descricao.replace('Vizinho com', 'tem').replace('.', '')) + ' e não sobe a ladeira sozinho.',
+      pergunta: 'Como levar o Seu Valdir até o Ponto Seco?',
+      depois: function (op) { S.triagem.valdir = !!op.correta; if (op.correta) CENA.mostrar('cadeira', true); },
+      legendaFb: function (op) { return op.correta ? 'Decide: transporte em dupla, com cadeira e pausas' : 'Transporte inseguro: risco de queda e de lesão'; },
+      opcoes: [
+        { id: 'a', correta: true, txt: 'Em dupla, com a cadeira de transporte, combinando cada movimento e fazendo pausas',
+          fb: 'Transporte manual de pessoas é risco ergonômico da equipe (fatores ergonômicos no GRO, NR-1, 1.5.3.1.4; boa prática para não celetistas). Controles: evacuar cedo, equipamento de transporte, dupla, técnica treinada e pausas.' },
+        { id: 'b', correta: false, sst: 'sem dupla', titulo: 'Erro de SST: transporte sem dupla', txt: 'Um agente carrega o Seu Valdir nas costas, sozinho, para ganhar tempo',
+          fb: 'Sobrecarga e queda: o agente e o Seu Valdir podem se machucar na ladeira molhada. Use a cadeira de transporte, em dupla. A coordenação manda a cadeira. Agir sem dupla conta como erro de SST no debriefing.' },
+        { id: 'c', correta: false, txt: 'Deixa o Seu Valdir para o fim e começa pelas casas de quem anda sozinho',
+          fb: 'No Alerta, a ação com a população é: ' + esc(nivelPorNome['Alerta'].acao_populacao) + ' Quem tem mobilidade reduzida precisa de mais tempo, não de menos.' }
+      ]
+    });
+    // carta "morador recusa"
+    m += PR.tempo_cenario.triagem_entre_casas_min;
+    S.minAtual = m;
+    nivel(nivelNoMin(m), 'T+' + m + ' min');
+    CENA.corrego(yCorrego(m));
+    CENA.vista('celeste', 1700); CENA.mostrar('dupla', false);
+    CENA.rotulos(['celeste', 'pipoca', 'm15', 'm30', 'm60']);
+    legenda(QUEM, 'Carta "morador recusa": a Dona Celeste não sai sem o Pipoca');
+    await cartaoAlertaMaximo(f, 'porta_a_porta', m, ondePorta, 'continuou batendo de porta em porta na zona quente');
+    await decisaoSST(f, {
+      chave: 'recusa', demo: roteiro('recusa'),
+      eyebrow: 'Fase ' + f.id + ' · ' + f.nome, tag: 'carta «morador recusa»',
+      titulo: 'A última casa da rua',
+      situacao: '<strong>' + esc(celeste.nome) + '</strong> (' + celeste.idade + ' anos, ' + esc(ROT.personagem.toLowerCase()) + ') não recebeu o alerta no celular antigo. Ela abre a porta: «Sem o Pipoca eu não saio.» Na régua do muro, a água ainda não chegou à marca de 15 cm.',
+      pergunta: 'O que a dupla faz?',
+      depois: function (op) { S.pipocaJunto = op.id !== 'b'; S.triagem.recusa = !!op.correta; },
+      legendaFb: function (op) { return op.correta ? 'Decide: comunica o risco, leva o Pipoca junto, registra e escalona se houver recusa' : 'Abordagem errada: conflito ou equipe parada na zona quente'; },
+      opcoes: [
+        { id: 'a', correta: true, txt: 'Explica o risco com calma e oferece levar o Pipoca na guia; se ela ainda recusar, registra a recusa e escalona à coordenação, com prazo-limite',
+          fb: 'Comunicar, registrar e escalonar, sem usar força e sem expor a equipe. Os animais entram no PLANCON (Lei 15.355/2026), com manejo por equipe capacitada. A ' + esc(celeste.nome) + ' aceita sair com o Pipoca na guia.' },
+        { id: 'b', correta: false, txt: 'Tira a Dona Celeste de casa à força e deixa o Pipoca para trás',
+          fb: 'Força gera conflito e atrasa a retirada; o Pipoca, assustado, foge e fica para trás. A recusa se comunica, se registra e se escalona à coordenação.' },
+        { id: 'c', correta: false, txt: 'Espera na porta o tempo que for preciso até ela mudar de ideia',
+          fb: 'Esperar sem prazo deixa a dupla na zona quente enquanto a água sobe. Use prazo-limite, registre a recusa e escalone. Depois de uma conversa por rádio com a coordenação, ela sai com o Pipoca.' }
+      ]
+    });
+  }
+
+  async function faseRota(f) {
+    S.fase = f;
+    var TC = PR.tempo_cenario;
+    var m = (S.minDecisao || 16) + (S.modo === 'completa' || (DEMO && DEMO_COMPLETA) ? TC.rota_apos_decisao_min.completa : TC.rota_apos_decisao_min.rapida);
+    var tentativa = 0;
+    CENA.mostrar('celeste_casa', false); CENA.mostrar('pipoca_casa', false); CENA.mostrar('dupla', false);
+    while (true) {
+      tentativa++;
+      CENA.arrastar(false);
+      var motivo = await percorrer(f, m, tentativa);
+      if (!motivo) break;
+      await telaGameOver(f, motivo);
+    }
+    // pós-rota: Ponto Seco à vista
+    CENA.sarjeta(0); CENA.neblina(0);
+  }
+  // devolve '' quando a comitiva chega ao Ponto Seco, ou o motivo do erro crítico ('travessia' | 'rua_de_cima')
+  async function percorrer(f, m, tentativa) {
+    var T = PR.trechos, passo = PR.tempo_cenario.trecho_passo_min;
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i], mt = m + i * passo;
+      S.minAtual = mt;
+      nivel(nivelNoMin(mt), 'T+' + mt + ' min');
+      CENA.comitivaEm(t.comitiva, t.rot);
+      CENA.vista(t.vista, i === 0 && tentativa === 1 ? 1800 : 1300);
+      CENA.corrego(yCorrego(mt));
+      if (t.id === 'calcada') { CENA.luz(0.55); CENA.chuva(0.6); CENA.travessia(0.2, 10); CENA.sarjeta(0, 10); CENA.neblina(0); CENA.rotulos(['rua_corrego', 'travessia']); }
+      if (t.id === 'travessia') { CENA.luz(0.6); CENA.chuva(0.85); CENA.travessia((t.profundidade_cm || 20) / 100, 600); CENA.rotulos(['travessia', 't15', 't30', 't60']); }
+      if (t.id === 'rua_de_cima') { CENA.luz(0.66); CENA.chuva(1); CENA.sarjeta(1); CENA.neblina(0.7); CENA.rotulos(['rua_cima', 'ponto_seco']); }
+      var cap = {
+        calcada: 'Trecho 1: chão visível e sem correnteza → SEGUE',
+        travessia: tentativa === 1 ? 'Erro proposital: segue pela travessia com água correndo' : 'Refaz: na travessia, NÃO ENTRA → muda de rota e avisa a coordenação',
+        rua_de_cima: 'Trecho 3: chuva forte e chão pouco visível → ESPERA em ponto seguro'
+      }[t.id];
+      legenda(QUEM, 'Missão Rota · ' + (DEMO ? cap : t.nome));
+      // depois de T+35 (Alerta máximo), seguir pela Rua do Córrego rumo à travessia conta como erro de SST (cartão, sem game over)
+      if (t.zona_quente) {
+        await cartaoAlertaMaximo(f, 'rota_zona_quente', mt, 'A comitiva ainda está na Rua do Córrego, a caminho da travessia baixa.',
+          'seguiu pela Rua do Córrego rumo à travessia baixa');
+        legenda(QUEM, 'Missão Rota · ' + (DEMO ? cap : t.nome));
+      }
+      var intro = i === 0 ? (S.modo === 'rapida' || (DEMO && !DEMO_COMPLETA) ? 'A dupla chegou à última casa da rua: a ' + esc(celeste.nome) + ' e o Pipoca vão junto até o Ponto Seco. ' : 'A ' + esc(celeste.nome) + ' e o Pipoca seguem com a dupla. ') : '';
+      var op = await escolher({
+        chave: t.id, demo: roteiro(t.id, tentativa), agua: true,
+        eyebrow: 'Fase ' + f.id + ' · ' + f.nome + ' · trecho ' + (i + 1) + ' de ' + T.length, tag: tentativa > 1 ? 'nova tentativa' : 'sigo, espero ou mudo de rota?',
+        titulo: t.nome,
+        situacao: intro + 'Leia a água e escolha pela escala.',
+        extra: leituraHTML(t),
+        pergunta: 'Sigo, espero ou mudo de rota?',
+        opcoes: [
+          { id: 'segue', cor: 'verde', txt: t.txt_segue },
+          { id: 'espera', cor: 'amarelo', txt: t.txt_espera },
+          { id: 'nao', cor: 'vermelho', txt: t.txt_nao }
+        ]
+      });
+      var certo = { verde: 'segue', amarelo: 'espera', vermelho: 'nao' }[t.cor];
+      var correta = op.id === certo;
+      var pts = correta ? J.pontuacao_proposta.por_decisao_sst_correta : 0;
+      if (t.id === 'travessia') {
+        S.rota = op.id === 'segue' ? 'travessia_baixa' : (op.id === 'nao' ? 'rota_alta' : 'espera');
+        // medalha "Dá meia-volta": só com NÃO ENTRA na travessia (vale a escolha da rota que chegou ao Ponto Seco)
+        S.meiaVolta = op.id === 'nao';
+      }
+      if (op.id === 'segue' && t.segue_critico) {
+        // erro crítico: SEGUE com água em movimento (travessia) ou sem ver o chão (Rua de Cima) → game over explicativo
+        if (t.id === 'travessia') {
+          gameOverMotivo('entrou em água em movimento na ' + t.nome.toLowerCase() + ' (' + t.profundidade + ', chão ' + t.chao + ')');
+          registrar(f.nome, t.id + ':segue (ERRO CRÍTICO)', false, undefined, 'Erro crítico · ' + t.nome + ': SEGUE, entrou em água em movimento (game over)', 'critico');
+          legenda(QUEM, 'Erro crítico: o agente entra na água em movimento e é arrastado');
+          CENA.vista('gameover', 900); CENA.arrastar(true); CENA.flash();
+        } else {
+          gameOverMotivo('desceu a ' + t.nome.split(',')[0] + ' sem ver o chão (correnteza ' + t.correnteza + ', chão ' + t.chao + ')');
+          registrar(f.nome, t.id + ':segue (ERRO CRÍTICO)', false, undefined, 'Erro crítico · ' + t.nome + ': SEGUE, desceu sem ver o chão (game over)', 'critico');
+          legenda(QUEM, 'Erro crítico: o agente desce sem ver o chão e cai na correnteza da sarjeta');
+          CENA.vista('gameover_cima', 900); CENA.cair(true); CENA.flash();
+        }
+        await espera(2300);
+        return t.id;
+      }
+      registrar(f.nome, t.id + ':' + op.id, correta, undefined, t.nome + ': ' + esc3[op.cor].palavra + ' (' + op.txt + ')');
+      var fb = textoTrecho(t, op.id, correta);
+      if (t.id === 'travessia' && DEMO) legenda(QUEM, 'Refaz: NÃO ENTRA. Muda de rota pela Rua de Cima e avisa a coordenação');
+      if (t.id === 'rua_de_cima' && op.id === 'espera') {
+        legenda(QUEM, DEMO ? 'Espera em ponto seguro: a pancada passa e o chão volta a aparecer' : 'Missão Rota · espera em ponto seguro');
+        CENA.chuva(0.5); CENA.sarjeta(0, 2200); CENA.neblina(0);
+      }
+      await feedback(correta ? 'ok' : 'meio', correta ? 'Correto: ' + esc3[t.cor].palavra : 'Não era a melhor leitura', fb.txt, fb.base, pts);
+      if (t.id === 'travessia') {
+        // segue pela rota alta: sobe a ladeira para a Rua de Cima
+        CENA.comitivaEm([15, 1.4, 0], 180, 900);
+      }
+    }
+    return '';
+  }
+  function textoTrecho(t, escolha, correta) {
+    var e = esc3[t.cor];
+    var base = 'Escala de 3 cores: ' + e.palavra + ' = ' + e.criterio + '.';
+    if (t.id === 'calcada') {
+      if (correta) return { txt: 'Chão visível e nenhuma correnteza: segue com cautela pela calçada, em dupla, com a moradora entre os agentes.', base: base };
+      return { txt: 'Aqui não havia água em movimento e o chão aparecia. Parar ou mudar de rota atrasa a saída enquanto a água sobe atrás de vocês.', base: base };
+    }
+    if (t.id === 'travessia') {
+      if (correta) return { txt: 'Correto: água em movimento e chão invisível. ' + esc(RC.enunciado_operacional) + ' A comitiva sobe pela Rua de Cima, mais longa e seca.', base: RC.base_de_apoio[0] + '.' };
+      return { txt: 'Você não entrou, e isso evita o pior. Mas com água em movimento e uma rota seca disponível, a regra é não entrar, mudar de rota e avisar a coordenação (o 193 é para quando alguém está em perigo). Esperar na beira de água que sobe expõe a equipe e a moradora. A coordenação manda subir pela Rua de Cima.', base: base };
+    }
+    if (correta) return { txt: 'Chuva forte e chão pouco visível: espera em ponto seguro e refaz a análise de risco. A pancada passa, o chão volta a aparecer e a comitiva segue até o Ponto Seco.', base: base };
+    return { txt: 'Voltar levaria a comitiva para perto do córrego, onde a água corre. Aqui a regra é esperar em ponto seguro e refazer a análise.', base: base };
+  }
+
+  // game over explicativo dos 3 erros críticos (D3): sempre cita a regra do curso e a fase recomeça
+  async function telaGameOver(f, motivo) {
+    marco('gameover');
+    marco('gameover:' + motivo);
+    var tv = PR.trechos.filter(function (x) { return x.id === 'travessia'; })[0];
+    var tc = PR.trechos.filter(function (x) { return x.id === 'rua_de_cima'; })[0];
+    var v = esc3.vermelho, am = esc3.amarelo, eM = nivelPorNome['Alerta máximo'];
+    var cartaoNws = '<div class="cartao"><h3>Por que isso é erro crítico</h3><p class="grande-num">~' + nws[0].altura_aprox_cm + ' cm</p>' +
+      '<p>Cerca de ' + nws[0].altura_aprox_cm + ' cm de ' + esc(nws[0].efeito) + '; cerca de ' + nws[1].altura_aprox_cm + ' cm ' + esc(nws[1].efeito) + '; cerca de ' + nws[2].altura_aprox_cm + ' cm ' + esc(nws[2].efeito) + '.</p>' +
+      '<p class="nota">' + esc(RC.nws_ressalva) + ' Afogamento é risco mesmo para quem sabe nadar (NIOSH, 2025).</p></div>';
+    var G = {
+      travessia: {
+        sub: 'Você entrou em água em movimento.',
+        oque: '<p>Na travessia baixa, a água corria por cima da via, com ' + esc(tv.profundidade) + ' e o chão invisível. O agente que ia à frente perdeu o pé e foi arrastado; a ' + esc(celeste.nome) + ' e o Pipoca vinham logo atrás.</p>' +
+          '<p><strong>Ninguém entra atrás do colega: aciona-se o 193.</strong> Esse é o plano de emergência da própria equipe.</p>',
+        porque: cartaoNws,
+        escala: '<span class="nv Alerta-maximo">' + esc(v.palavra) + '</span> ' + esc(v.criterio) + '.',
+        botao: 'Refazer a fase ' + f.nome, legenda: 'Game over explicativo: cerca de ' + nws[0].altura_aprox_cm + ' cm de água em movimento derrubam um adulto (NWS)'
+      },
+      rua_de_cima: {
+        sub: 'Você desceu sem ver o chão.',
+        oque: '<p>Na ' + esc(tc.nome.split(',')[0]) + ', a pancada deixou o chão ' + esc(tc.chao) + ' e a correnteza já começava na sarjeta. Sem ver o chão, ninguém vê bueiro aberto, buraco ou objeto submerso: o agente que ia à frente pisou em falso, caiu e a correnteza da sarjeta o puxou. A ' + esc(celeste.nome) + ' e o Pipoca vinham logo atrás.</p>' +
+          '<p><strong>Ninguém entra atrás do colega: aciona-se o 193.</strong> A leitura certa era esperar em ponto seguro, sob a marquise, e refazer a análise.</p>',
+        porque: cartaoNws,
+        escala: '<span class="nv Sobreaviso">' + esc(am.palavra) + '</span> ' + esc(am.criterio) + '. Com o chão pouco visível, a escala manda esperar; com água em movimento ou chão invisível, NÃO ENTRA.',
+        botao: 'Refazer a fase ' + f.nome, legenda: 'Game over explicativo: sem ver o chão, a escala manda ESPERAR em ponto seguro'
+      },
+      zona_quente: {
+        sub: 'Você mandou a dupla de volta à zona quente no Alerta máximo.',
+        oque: '<p>A dupla desceu de novo a Rua do Córrego para bater na casa ' + PR.casa_sem_resposta + '. ' + esc(EV_MAXIMO.t) + ': ' + esc(EV_MAXIMO.evento) + '. Na travessia, o chão já não aparecia: um agente perdeu o pé e a coordenação precisou acionar o 193 para a própria equipe. Em vez de uma casa sem resposta, agora há dois agentes em perigo.</p>' +
+          '<p><strong>No Alerta máximo: ' + esc(eM.acao_sst_equipe) + '</strong> A casa ' + PR.casa_sem_resposta + ' vai para a coordenação e para o 193.</p>',
+        porque: cartaoNws,
+        escala: '<span class="nv Alerta-maximo">' + esc(v.palavra) + '</span> ' + esc(v.criterio) + '.',
+        botao: 'Refazer a fase ' + f.nome, legenda: 'Game over explicativo: no Alerta máximo, ninguém volta à zona quente'
+      }
+    }[motivo] || null;
+    if (!G) return;
+    abrirSobre(
+      '<div class="folha">' +
+      '<div class="go-cab">' + ic('circle-x') + '<div><div class="selo">GAME OVER</div><p class="subtitulo" style="color:#fff">' + esc(G.sub) + '</p></div></div>' +
+      '<div class="go-grid">' +
+      '<div class="cartao"><h3>O que aconteceu</h3>' + G.oque + '</div>' +
+      G.porque +
+      '</div>' +
+      '<div class="cartao"><h3>' + ic('eye') + ' Regra do curso: ' + esc(RC.frase) + '</h3><p>' + G.escala + '</p>' +
+      '<p class="nota">' + esc(D.marca.frase_de_venda) + ' · Erro crítico registrado no debriefing; a fase recomeça.</p></div>' +
+      '<button class="btn grande" id="b-refazer">' + ic('rotate-ccw') + esc(G.botao) + '</button>' +
+      '</div>', 'vermelho');
+    legenda(QUEM, G.legenda);
+    await new Promise(function (r) {
+      var b = $('#b-refazer'), feito = false;
+      function ir() { if (feito) return; feito = true; resolverAtual = null; r(); }
+      b.onclick = ir; resolverAtual = ir;
+      if (!DEMO) b.focus({ preventScroll: true });
+      if (DEMO) espera(PR.demo.gameover_ms).then(ir);
+    });
+    fecharSobre();
+    CENA.arrastar(false);
+  }
+
+  function calcularEvacuados() {
+    var total = 0, ok = 0, lista = [];
+    PR.populacao.forEach(function (p) {
+      var n = p.pessoas + p.animais, chegou = true;
+      if (p.perde_se_decisao_tardia && S.tardio) chegou = false;
+      if (p.id === 'pipoca' && !S.pipocaJunto) chegou = false;
+      total += n; if (chegou) ok += n;
+      lista.push({ nome: p.nome, n: n, chegou: chegou, animal: p.animais > 0 });
+    });
+    S.pct = Math.round(ok / total * 100);
+    S.evacLista = lista; S.evacTotal = total; S.evacOk = ok;
+    return lista;
+  }
+
+  async function fasePontoSeco(f) {
+    S.fase = f;
+    // o relógio do cenário não volta: o Ponto Seco começa no Alerta máximo (T+35) ou logo depois do último trecho
+    var m = Math.max(MIN_MAXIMO, (S.minAtual || 0) + PR.tempo_cenario.ponto_seco_apos_rota_min);
+    S.minAtual = m;
+    var lista = calcularEvacuados();
+    var meta = LINHA.filter(function (x) { return x.min > MIN_MAXIMO; })[0];
+    var eM = nivelPorNome['Alerta máximo'];
+    var tentativa = 0;
+    while (true) {
+      tentativa++;
+      nivel('Alerta máximo', 'T+' + m + ' min');
+      CENA.duplaEm(null); CENA.mostrar('dupla', false);
+      CENA.vista('ponto_seco', tentativa === 1 ? 1800 : 1200); CENA.luz(0.8); CENA.chuva(0.9); CENA.corrego(yCorrego(m + 3)); CENA.ruaAlagada(0.12, 2000); CENA.travessia(0.35);
+      CENA.mostrar('comitiva', false); CENA.mostrar('moradores_ps', true); CENA.mostrar('equipe', true);
+      CENA.mostrar('pipoca_ps', S.pipocaJunto);
+      ['familia_1', 'familia_2', 'familia_3'].forEach(function (id) { CENA.mostrar(id, !S.tardio); });
+      CENA.rotulos(['ponto_seco', 'reuniao']);
+      legenda(QUEM, 'Ponto seco: Alerta máximo; contagem de evacuados e retirada da equipe');
+      var cont = '<div class="cartao"><h3>' + ic('list-checks') + ' Contagem de evacuados no Ponto Seco</h3><div class="lista-dec">' + lista.map(function (p) {
+        return '<div class="it"><span class="st ' + (p.chegou ? 'ok' : 'nao') + '">' + ic(p.chegou ? 'check' : 'x') + '</span><div><b>' + esc(p.nome) + '</b><span>' + (p.animal ? '1 animal' : p.n + (p.n > 1 ? ' pessoas' : ' pessoa')) + (p.chegou ? ' · chegou' : ' · não chegou') + '</span></div></div>';
+      }).join('') + '<div class="it"><span class="st nao">' + ic('triangle-alert') + '</span><div><b>Casa ' + PR.casa_sem_resposta + '</b><span>ninguém atendeu na primeira passagem (ocupação desconhecida)</span></div></div>' +
+        '</div><p class="nota">' + S.evacOk + ' de ' + S.evacTotal + ' (pessoas e animal) no Ponto Seco: ' + S.pct + '%. População da rua hipotética.</p></div>';
+      var quando = m === MIN_MAXIMO ? '<strong>' + esc(EV_MAXIMO.t) + ':</strong> ' : '<strong>T+' + m + ' min</strong> (Alerta máximo desde ' + esc(EV_MAXIMO.t) + '): ';
+      var op = await decisaoSST(f, {
+        chave: 'ponto_seco', demo: roteiro('ponto_seco'),
+        eyebrow: 'Fase ' + f.id + ' · ' + f.nome, tag: tentativa > 1 ? 'nova tentativa' : 'decisão de SST · contagem de efetivo',
+        titulo: 'Alerta máximo',
+        situacao: quando + esc(EV_MAXIMO.evento) + '.' + (meta ? ' Meta (' + esc(meta.t) + '): ' + esc(meta.evento.replace(/^meta:\s*/i, '')) + '.' : ''),
+        extra: cont,
+        pergunta: 'A casa ' + PR.casa_sem_resposta + ' ficou sem resposta. O que a equipe faz?',
+        depois: function (op) { S.contagemOk = !!op.correta; },
+        legendaFb: function (op) { return op.correta ? 'Decide: retirada da equipe e contagem de efetivo; a casa 4 vai à coordenação' : 'Erro de SST: equipe sem contagem de efetivo'; },
+        opcoes: [
+          { id: 'a', correta: true, txt: 'Retira toda a equipe para o ponto de reunião, faz a contagem de efetivo por rádio e passa a casa ' + PR.casa_sem_resposta + ' à coordenação e ao 193',
+            fb: 'No Alerta máximo, a ação de SST é: ' + esc(eM.acao_sst_equipe) + ' Contagem fechada.' },
+          { id: 'b', correta: false, critico: true, txt: 'Uma dupla volta rápido à Rua do Córrego para bater de novo na casa ' + PR.casa_sem_resposta },
+          { id: 'c', correta: false, txt: 'Cada agente vai para casa; a contagem de efetivo fica para amanhã',
+            fb: 'Sem contagem de efetivo, ninguém sabe se falta alguém da equipe. A retirada é para o ponto seguro predefinido, com contagem.' }
+        ]
+      });
+      if (!op.critico) break;
+      // erro crítico: voltar à zona quente no Alerta máximo → game over explicativo e a fase recomeça
+      gameOverMotivo('mandou a dupla de volta à zona quente no Alerta máximo (casa ' + PR.casa_sem_resposta + ', T+' + m + ' min)');
+      legenda(QUEM, 'Erro crítico: a dupla volta à zona quente no Alerta máximo');
+      CENA.mostrar('equipe', false);
+      CENA.duplaEm(PR.dupla_zona_quente.pos, PR.dupla_zona_quente.rot);
+      CENA.vista('gameover', 900); CENA.ruaAlagada(0.12, 10); CENA.travessia(0.35, 10); CENA.flash();
+      await espera(2300);
+      await telaGameOver(f, 'zona_quente');
+    }
+    CENA.duplaEm(null); CENA.mostrar('dupla', false);
+  }
+
+  // ---------------------------------------------------------------- debriefing
+  function missaoCompleta() { return S.modo === 'completa' || (S.modo === 'demo' && DEMO_COMPLETA); }
+  // medalhas (D3): disponivel = a partida tem a fase que a medalha avalia (triagem e ponto seco só na missão completa)
+  function medalhas() {
+    var comp = missaoCompleta();
+    return J.badges.map(function (b) {
+      var disp = true, ganho = false;
+      if (b.id === 'pe_no_seco') ganho = S.erros === 0;
+      else if (b.id === 'da_meia_volta') ganho = !!S.meiaVolta;
+      else if (b.id === 'ninguem_fica') { disp = comp; ganho = comp && S.triagem.valdir === true && S.triagem.recusa === true && S.pct === 100; }
+      else if (b.id === 'contagem_fechada') { disp = comp; ganho = comp && !!S.contagemOk; }
+      return { id: b.id, nome: b.nome, criterio: b.criterio, disp: disp, ganho: ganho };
+    });
+  }
+  function badgesGanhos() {
+    return medalhas().filter(function (x) { return x.ganho; }).map(function (x) { return x.nome; });
+  }
+  function contagemErros() {
+    var erradas = S.eventos.filter(function (e) { return !e.correta; }).length;
+    return { erradas: erradas, criticos: S.erros, sst: S.errosSst, outras: Math.max(0, erradas - S.erros - S.errosSst) };
+  }
+  function tituloDebriefing() {
+    var n = contagemErros().erradas;
+    if (n === 0) return 'Missão cumprida sem ninguém na água.';
+    if (n === 1) return TITULO_ERRO.replace(/\bN decisões de SST erradas\b/, '1 decisão de SST errada').replace(/\bN\b/, '1');
+    return TITULO_ERRO.replace(/\bN\b/, String(n));
+  }
+  function plural(n, um, varios) { return n + ' ' + (n === 1 ? um : varios); }
+  function csv() {
+    var cols = J.csv_colunas;
+    var tTotal = (agora() - S.inicio) / 1000;
+    var tDec = S.tDecisao && S.tAlerta0 ? (S.tDecisao - S.tAlerta0) / 1000 : '';
+    var resumo = {
+      sessao_id: S.sessao, modo: S.modoCsv, tempo_ate_decisao_s: tDec === '' ? '' : br(tDec, 1), erros_criticos: S.erros, pct_evacuados: S.pct,
+      decisoes_sst_corretas: S.sstOk, decisoes_sst_total: S.sstTot, tempo_total_s: br(tTotal, 1), rota_escolhida: S.rota,
+      game_over_motivo: S.gameOver, badges: S.badges.join(' | ')
+    };
+    var linhas = S.eventos.map(function (e) {
+      return Object.assign({}, resumo, { data_hora: e.data_hora, fase: e.fase, decisao: e.decisao, correta: e.correta ? 'sim' : 'nao' });
+    });
+    // linha de resumo: contagem dos erros pelo tipo da regra D3 (as colunas do CSV são as de DADOS.json)
+    var cnt = contagemErros();
+    linhas.push(Object.assign({}, resumo, { data_hora: dataHora(), fase: 'resumo',
+      decisao: 'erros_criticos=' + cnt.criticos + ' | erros_sst=' + cnt.sst + ' | decisoes_sst_erradas=' + cnt.erradas, correta: '' }));
+    function cel(v) { v = v === undefined || v === null ? '' : String(v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+    return cols.join(';') + '\r\n' + linhas.map(function (l) { return cols.map(function (c) { return cel(l[c]); }).join(';'); }).join('\r\n') + '\r\n';
+  }
+  async function faseDebriefing(f) {
+    S.fase = f; hud();
+    if (S.pct === null) calcularEvacuados();
+    S.badges = badgesGanhos();
+    S.modoCsv = DEMO ? 'demo' : S.modo;
+    nivel('', '');
+    CENA.vista('geral', 2000); CENA.luz(0.85); CENA.chuva(0.5); CENA.ruaAlagada(0.12); CENA.travessia(0.35);
+    CENA.mostrar('comitiva', false); CENA.mostrar('moradores_ps', true); CENA.mostrar('equipe', true);
+    CENA.rotulos(['corrego', 'travessia', 'ponto_seco', 'rua_cima']);
+    legenda(QUEM, 'Debriefing: tempo até a decisão, erros críticos, % evacuados, decisões de SST e CSV');
+    marco('debriefing');
+    var tTotal = (agora() - S.inicio) / 1000;
+    var tDec = S.tDecisao ? (S.tDecisao - S.tAlerta0) / 1000 : 0;
+    var texto = csv();
+    var rotaNome = { rota_alta: 'Rua de Cima (rota alta, seca)', travessia_baixa: 'travessia baixa (com água)', espera: 'espera na beira, depois Rua de Cima' }[S.rota] || S.rota;
+    var dx = RC.dxv_aidr;
+    var cnt = contagemErros(), MED = medalhas();
+    var medDisp = MED.filter(function (x) { return x.disp; });
+    var resumoErros = cnt.erradas === 0 ? 'Nenhuma decisão de SST errada: zero erro crítico e zero erro de SST.' :
+      plural(cnt.criticos, 'erro crítico', 'erros críticos') + ' (game over e a fase recomeçou) · ' + plural(cnt.sst, 'erro de SST', 'erros de SST') +
+      ' (sem game over) · ' + plural(cnt.outras, 'outra decisão errada', 'outras decisões erradas') + '.';
+    abrirSobre(
+      '<div class="folha larga">' +
+      '<div class="eyebrow">' + ic('clipboard-list') + ' Fase ' + f.id + ' · Debriefing<span class="tag">sessão ' + esc(S.sessao) + (DEMO ? ' · demonstração' : '') + '</span></div>' +
+      '<h2 id="deb-titulo">' + esc(tituloDebriefing()) + '</h2>' +
+      '<p class="situacao deb-resumo">' + esc(resumoErros) + '</p>' +
+      '<div class="metricas">' +
+      met('Tempo até a decisão', br(tDec, 1) + '<small> s</small>', 'evacuação decidida em T+' + S.minDecisao + ' min (' + nivelNoMin(S.minDecisao) + ')', S.tardio ? 'alerta' : 'bom') +
+      met('Erros críticos', String(cnt.criticos), 'SEGUE na água em movimento ou sem ver o chão; volta à zona quente no Alerta máximo', cnt.criticos ? 'alerta' : 'bom') +
+      met('Erros de SST', String(cnt.sst), 'sair sem dupla; seguir na zona quente depois de T+' + MIN_MAXIMO + ' (sem game over)', cnt.sst ? 'alerta' : 'bom') +
+      met('Decisões de SST', S.sstOk + '<small>/' + S.sstTot + '</small>', 'corretas / avaliadas, contando as tentativas refeitas', S.sstOk === S.sstTot ? 'bom' : 'alerta') +
+      met('Evacuados', S.pct + '<small>%</small>', S.evacOk + ' de ' + S.evacTotal + ' (pessoas e animal) no Ponto Seco', S.pct === 100 ? 'bom' : 'alerta') +
+      met('Rota escolhida', '<span style="font-size:17px">' + esc(rotaNome) + '</span>', 'na travessia baixa', S.rota === 'rota_alta' ? 'bom' : 'alerta') +
+      met('Tempo total', Math.floor(tTotal / 60) + ':' + ('0' + Math.floor(tTotal % 60)).slice(-2), 'duração da partida', '') +
+      met('Pontos', String(S.pontos + S.evacOkPts()), 'decisões + evacuados (valores de design do jogo)', '') +
+      '</div>' +
+      '<div class="cartao"><h3>' + ic('award') + ' Medalhas · ' + S.badges.length + ' de ' + medDisp.length + (medDisp.length < MED.length ? ' possíveis nesta missão' : '') + '</h3><div class="badges">' + MED.map(function (x) {
+        var cls = x.ganho ? ' ganho' : (x.disp ? '' : ' indisp');
+        var est = x.ganho ? 'ganha' : (x.disp ? 'não ganha' : 'só na missão completa');
+        return '<span class="badge' + cls + '" data-id="' + esc(x.id) + '" title="' + esc(x.criterio) + '">' + ic(x.ganho ? 'badge-check' : (x.disp ? 'x' : 'info')) + esc(x.nome) +
+          (x.disp ? '' : '<small>só na missão completa</small>') + '<span class="sr">' + est + '</span></span>';
+      }).join('') + '</div><p class="nota">' + MED.map(function (x) { return x.nome + ': ' + x.criterio; }).join(' · ') + '</p></div>' +
+      '<div class="deb-cols">' +
+      '<div class="cartao"><h3>' + ic('shield-check') + ' Suas decisões de SST</h3><div class="lista-dec">' + S.eventos.map(function (e) {
+        var rot = e.tipo === 'critico' ? '<em class="tipo-erro critico">erro crítico</em>' : (e.tipo === 'sst' ? '<em class="tipo-erro sst">erro de SST</em>' : '');
+        return '<div class="it"><span class="st ' + (e.correta ? 'ok' : 'nao') + '">' + ic(e.correta ? 'check' : 'x') + '</span><div><b>' + esc(e.fase) + rot + '</b><span>' + esc(e.texto) + '</span></div></div>';
+      }).join('') + '</div>' + (S.gameOvers.length ? '<p class="nota">Game over: ' + esc(S.gameOvers.join('; ')) + '.</p>' : '') + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:14px;min-width:0">' +
+      '<div class="cartao"><h3>' + ic('waves') + ' Margem de segurança (D×V, só no debriefing)</h3><div class="dxv">' +
+      '<div class="faixa"><b>&lt; ' + br(dx.adulto_risco_baixo_abaixo_m2s, 1) + ' m²/s</b><span>risco baixo para adulto</span></div>' +
+      '<div class="faixa"><b>' + br(dx.limite_socorrista_treinado_m2s, 1) + ' m²/s</b><span>limite de trabalho recomendado para adultos treinados</span></div>' +
+      '<div class="faixa"><b>&gt; ' + br(dx.risco_extremo_acima_m2s, 1) + ' m²/s</b><span>«' + esc(dx.termo_da_fonte) + '» (AIDR)</span></div>' +
+      '<p class="nota">D×V = profundidade × velocidade da água. ' + esc(dx.ressalva) + ' ' + esc(dx.decisao_do_curso) + ' No campo ninguém mede a velocidade da água: por isso a regra da equipe é a da vista. ' + esc(RC.frase) + '</p></div></div>' +
+      '<div class="cartao"><h3>' + ic('siren') + ' Escada alerta → ação</h3><div style="overflow-x:auto"><table class="escada"><thead><tr><th>Nível</th><th>População</th><th>SST da equipe</th></tr></thead><tbody>' +
+      ESC.map(function (e) { return '<tr><td><span class="nv ' + e.nivel.replace(' máximo', '-maximo') + '">' + esc(e.nivel) + '</span></td><td>' + esc(e.acao_populacao) + '</td><td>' + esc(e.acao_sst_equipe) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="nota">' + esc(ROT.escada) + '.</p></div>' +
+      '</div></div>' +
+      '<div class="cartao"><h3>' + ic('download') + ' Registro da sessão (CSV)</h3>' +
+      '<p class="nota">' + esc(J.csv_privacidade) + ' Colunas: ' + esc(J.csv_colunas.join(', ')) + '. Separador ponto e vírgula, UTF-8.</p>' +
+      '<div class="linha-btns">' + (BUILD.alvo === 'artifact' ? '' : '<button class="btn clara" id="b-baixar">' + ic('download') + 'Baixar CSV</button>') +
+      '<button class="btn clara" id="b-copiar">' + ic('copy') + 'Copiar CSV</button></div><span class="ok-msg" id="csv-ok" role="status"></span>' +
+      '<label class="sr" for="csv">Conteúdo do CSV</label><textarea id="csv" readonly>' + esc(texto) + '</textarea>' +
+      '<p class="nota">Ranking ' + esc(J.ranking) + ': ' + esc(ROT.proposto.toLowerCase()) + '.</p></div>' +
+      '<div class="linha-btns"><button class="btn grande" id="b-denovo">' + ic('rotate-ccw') + 'Jogar de novo</button>' +
+      '<button class="btn sec grande" id="b-inicio">' + ic('house') + 'Voltar ao início</button></div>' +
+      rotulosHTML() + creditosHTML() +
+      '</div>', 'escuro');
+    painel.innerHTML = '';
+    var bb = $('#b-baixar');
+    /*BAIXAR_INICIO*/
+    if (bb) bb.onclick = function () {
+      try {
+        var blob = new Blob(['﻿' + texto], { type: 'text/csv;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'chao_a_vista_sessao_' + S.sessao + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+        $('#csv-ok').textContent = 'Arquivo gerado: ' + a.download;
+      } catch (e) { $('#csv-ok').textContent = 'O navegador bloqueou o download; use Copiar CSV.'; }
+    };
+    /*BAIXAR_FIM*/
+    $('#b-copiar').onclick = function () {
+      var ta = $('#csv');
+      function manual() { ta.focus(); ta.select(); $('#csv-ok').textContent = 'Texto selecionado: use Ctrl+C.'; }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(function () { $('#csv-ok').textContent = 'CSV copiado.'; }, manual);
+      else manual();
+    };
+    $('#b-denovo').onclick = function () { var m = S.modo === 'demo' ? 'rapida' : S.modo; sairDemo(); preTreino(m); };
+    $('#b-inicio').onclick = function () { sairDemo(); fecharSobre(); telaAbertura(); };
+    window.__csv = texto;
+    if (DEMO) {
+      await espera(PR.demo.debriefing_ms * 0.55);
+      var alvo = sobre.querySelector('.deb-cols');
+      if (alvo) sobre.scrollTo({ top: alvo.offsetTop - 20, behavior: 'smooth' });
+      await espera(PR.demo.debriefing_ms * 0.45);
+      marco('fim_demo');
+    }
+  }
+  function met(rot, v, d, cls) { return '<div class="met ' + (cls || '') + '"><span class="r">' + esc(rot) + '</span><span class="v">' + v + '</span><span class="d">' + esc(d) + '</span></div>'; }
+
+  // ---------------------------------------------------------------- partida
+  var RODAR = { 0: faseBriefing, 1: faseAlerta, 2: faseTriagem, 3: faseRota, 4: fasePontoSeco, 5: faseDebriefing };
+  function roteiro(chave, tentativa) {
+    var r = DEMO_COMPLETA ? PR.demo.roteiro_completo : PR.demo.roteiro_rapido;
+    var v = r[chave];
+    if (Array.isArray(v)) return v[Math.min(v.length, tentativa || 1) - 1];
+    return v || 'a';
+  }
+  async function jogar(modo) {
+    fecharSobre();
+    novoEstado(modo);
+    window.__estado = S; // só leitura, para os testes automáticos
+    S.evacOkPts = function () {
+      if (S.pct === null) return 0;
+      var p = 0; (S.evacLista || []).forEach(function (x) { if (x.chegou) p += x.animal ? J.pontuacao_proposta.por_animal_evacuado * x.n : J.pontuacao_proposta.por_morador_evacuado * x.n; });
+      return p;
+    };
+    CENA.mostrar('celeste_casa', true); CENA.mostrar('pipoca_casa', true); CENA.mostrar('comitiva', false); CENA.mostrar('moradores_ps', false);
+    CENA.travessia(0); CENA.ruaAlagada(0); CENA.sarjeta(0); CENA.neblina(0);
+    var lista = fasesDoModo(modo === 'demo' ? (DEMO_COMPLETA ? 'completa' : 'rapida') : modo);
+    for (var i = 0; i < lista.length; i++) await RODAR[lista[i].id](lista[i]);
+  }
+
+  // ---------------------------------------------------------------- VR (só se o navegador confirmar)
+  function configurarVR() {
+    var b = $('#btn-vr'), bt = $('#hud-vr');
+    if (!navigator.xr || !navigator.xr.isSessionSupported) return;
+    navigator.xr.isSessionSupported('immersive-vr').then(function (ok) {
+      if (!ok) return;
+      [b, bt].forEach(function (x) { if (x) { x.hidden = false; x.onclick = function () { document.querySelector('a-scene').enterVR(); }; } });
+    }).catch(function () { /* sem suporte: o botão continua oculto */ });
+  }
+
+  // ---------------------------------------------------------------- modo foto (renders para o vídeo EAD e os slides)
+  function modoFoto(nome) {
+    painel.innerHTML = ''; fecharSobre();
+    var rot = qs.get('rotulos') === '1';
+    CENA.mostrar('dupla', false); CENA.mostrar('comitiva', false); CENA.mostrar('moradores_ps', false); CENA.mostrar('equipe', false);
+    CENA.travessia(0, 10); CENA.ruaAlagada(0, 10); CENA.sarjeta(0, 10); CENA.neblina(0); CENA.chuva(0.6); CENA.corrego(-0.85, 10);
+    var F = {
+      geral: function () { CENA.vista('geral'); CENA.luz(0.12); CENA.mostrar('equipe', true); return ['corrego', 'rua_corrego', 'rua_cima', 'casa_celeste', 'travessia', 'ponto_seco']; },
+      corrego_baixo: function () { CENA.vista('corrego'); CENA.luz(0.2); CENA.corrego(yCorrego(2), 10); return ['regua_corrego']; },
+      corrego_alerta: function () { CENA.vista('corrego'); CENA.luz(0.4); CENA.chuva(0.9); CENA.corrego(yCorrego(MIN_ALERTA + 3), 10); return ['regua_corrego']; },
+      regua: function () { CENA.vista('regua'); CENA.luz(0.35); return ['m15', 'm30', 'm60']; },
+      celeste: function () { CENA.vista('celeste'); CENA.luz(0.45); CENA.chuva(0.75); return ['celeste', 'pipoca', 'm15', 'm30', 'm60']; },
+      valdir: function () { CENA.vista('valdir'); CENA.luz(0.45); CENA.mostrar('dupla', true); CENA.mostrar('cadeira', true); return ['valdir']; },
+      travessia: function () { CENA.vista('trecho2'); CENA.luz(0.6); CENA.chuva(0.9); CENA.travessia(0.2, 10); CENA.comitivaEm(PR.trechos[1].comitiva, -90); CENA.mostrar('celeste_casa', false); CENA.mostrar('pipoca_casa', false); return ['travessia', 't15', 't30', 't60']; },
+      rua_de_cima: function () { CENA.vista('trecho3'); CENA.luz(0.66); CENA.chuva(1); CENA.sarjeta(1, 10); CENA.neblina(0.7); CENA.comitivaEm(PR.trechos[2].comitiva, -90); return ['rua_cima']; },
+      ponto_seco: function () { CENA.vista('ponto_seco'); CENA.luz(0.8); CENA.chuva(0.9); CENA.mostrar('moradores_ps', true); CENA.mostrar('equipe', true); CENA.ruaAlagada(0.12, 10); return ['ponto_seco', 'reuniao']; },
+      alerta_maximo: function () { CENA.vista('geral'); CENA.luz(0.85); CENA.chuva(1); CENA.corrego(0.1, 10); CENA.ruaAlagada(0.12, 10); CENA.travessia(0.35, 10); CENA.mostrar('moradores_ps', true); return ['corrego', 'rua_corrego', 'travessia', 'ponto_seco']; },
+      gameover_cena: function () { CENA.vista('gameover'); CENA.luz(0.6); CENA.chuva(0.9); CENA.travessia(0.2, 10); CENA.comitivaEm(PR.trechos[1].comitiva, -90); CENA.mostrar('celeste_casa', false); CENA.mostrar('pipoca_casa', false); CENA.arrastar(true); return []; }
+    };
+    var r = (F[nome] || F.geral)();
+    CENA.rotulos(rot ? r : []);
+    setTimeout(function () { marco('foto_pronta'); }, 1800);
+  }
+
+  function iniciarDemo(completa) {
+    DEMO = true; DEMO_COMPLETA = !!completa;
+    telaAbertura();
+    legenda(QUEM, 'O jogo joga sozinho: primeiro com um erro proposital, depois do jeito certo');
+    marco('demo_inicio');
+    espera(PR.demo.abertura_ms).then(function () { jogar('demo'); });
+  }
+  function sairDemo() { DEMO = false; legendaEl.hidden = true; legendaEl.innerHTML = ''; }
+
+  // ---------------------------------------------------------------- início
+  CENA.pronto(function () {
+    var cenaEl = document.querySelector('a-scene');
+    // remove o atalho do Inspector do A-Frame (carregaria script de host externo)
+    try { cenaEl.removeAttribute('inspector'); } catch (e) { /* ok */ }
+    try { if (cenaEl.renderer) cenaEl.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); } catch (e) { /* ok */ }
+    $('#carregando').hidden = true;
+    if (FOTO) { modoFoto(FOTO); return; }
+    if (DEMO) { iniciarDemo(DEMO_COMPLETA); return; }
+    telaAbertura();
+  });
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+Chão à Vista: a última casa da rua
+Universidade de Brasília (UnB) · Faculdade de Tecnologia · Departamento de Engenharia de Produção
+Segurança e Saúde no Trabalho (02/2026) · Trabalho 5 (Atividade 5) – Proposta de treinamento: Evacuação em caso de inundação
+Prof. Paulo Celso dos Reis Gomes
+Grupo: Maria Eduarda Silveira Cintra, Enzo Grandino Lourenço, Beatriz Gomes de Araújo, Maria Alice Teixeira Portilho
+Brasília, 2026
+
+Como abrir: dê duplo clique em index.html (Chrome, Edge ou Firefox atualizados). Não precisa de internet.
+Demonstração automática: abra index.html?demo=1 (ou index.html#demo).
+
+Rótulos: Personagem fictícia (Dona Celeste, Seu Valdir, Pipoca). Bairro fictício, inspirado em áreas de risco do DF (Vila Baru, Córrego Baru). Chuva hipotética, inspirada no registro de 84,2 mm em 1 h (INMET, 25/01/2026), dia em que o Plano Piloto registrou alagamentos. Compatível com WebXR, não testado em headset.
+
+Terceiros:
+- A-Frame 1.8.0 (MIT), vendor/aframe.min.js, copiado sem alteração do pacote npm aframe@1.8.0 (dist/aframe-v1.8.0.min.js; sha256 40d5a4d63c67d8c50842bf3c36a06995cad712d0675c8e5d2eb4dbae38b7481f). Inclui three.js (MIT). Licença em vendor/LICENSE-aframe.txt.
+- Ícones Lucide (ISC), desenhos SVG embutidos no HTML. Licença em assets/LICENSE-lucide.txt.
+- Cena 3D feita só com formas geométricas do A-Frame e cores; nenhuma foto, modelo 3D, fonte ou som de terceiros.
